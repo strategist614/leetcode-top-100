@@ -302,3 +302,152 @@ public:
 
 - 时间复杂度：`O(n^2)`
 - 空间复杂度：`O(log n)`，取决于排序实现使用的栈空间；不计返回结果
+
+---
+
+## 53. 最大子数组和
+
+- 难度：中等
+- 题目链接：[LeetCode - 最大子数组和](https://leetcode.cn/problems/maximum-subarray/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个整数数组 `nums`，找出一个和最大的连续子数组，并返回该子数组的最大和。子数组至少包含一个元素。
+
+### 示例
+
+```text
+输入：nums = [-2,1,-3,4,-1,2,1,-5,4]
+输出：6
+解释：连续子数组 [4,-1,2,1] 的和最大，为 6。
+```
+
+```text
+输入：nums = [1]
+输出：1
+```
+
+```text
+输入：nums = [5,4,-1,7,8]
+输出：23
+```
+
+### 约束
+
+- `1 <= nums.length <= 10^5`
+- `-10^4 <= nums[i] <= 10^4`
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    int maxSubArray(vector<int>& nums) {
+        int sum = nums[0];
+        int ans = nums[0];
+        for(int i = 1;i < nums.size();i++){
+            if(sum < 0) sum = nums[i];
+            else {
+                sum += nums[i];
+            }
+            ans = max(ans, sum);
+        }
+        return ans;
+    }
+};
+```
+
+### 解法说明
+
+遍历数组时，`sum` 表示以当前元素结尾的最大子数组和。如果此前的 `sum` 小于 `0`，继续累加只会使结果变小，因此从当前元素重新开始；否则将当前元素加入已有子数组。使用 `ans` 记录遍历过程中出现的最大值。
+
+### 复杂度
+
+- 时间复杂度：`O(n)`
+- 空间复杂度：`O(1)`
+
+---
+
+## 56. 合并区间
+
+- 难度：中等
+- 题目链接：[LeetCode - 合并区间](https://leetcode.cn/problems/merge-intervals/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个区间数组 `intervals`，其中 `intervals[i] = [start_i, end_i]`。合并所有相互重叠的区间，返回一组互不重叠且恰好覆盖原有区间的结果。
+
+### 示例
+
+```text
+输入：intervals = [[1,3],[2,6],[8,10],[15,18]]
+输出：[[1,6],[8,10],[15,18]]
+```
+
+```text
+输入：intervals = [[1,4],[4,5]]
+输出：[[1,5]]
+```
+
+```text
+输入：intervals = [[4,7],[1,4]]
+输出：[[1,7]]
+```
+
+### 约束
+
+- `1 <= intervals.length <= 10^4`
+- `intervals[i].length == 2`
+- `0 <= start_i <= end_i <= 10^4`
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    struct node {
+        int st;
+        int ed;
+    } a[10005];
+
+    static bool cmp(const node& a, const node& b) {
+        if (a.st != b.st) {
+            return a.st < b.st;
+        }
+        return a.ed < b.ed;
+    }
+
+    vector<vector<int>> merge(vector<vector<int>>& intervals) {
+        vector<vector<int>> ans;
+        for(int i = 0;i < intervals.size();i++){
+            a[i].st = intervals[i][0];
+            a[i].ed = intervals[i][1];
+        }
+        int n = (int)intervals.size();
+        sort(a, a + n, cmp);
+        int end = a[0].ed;
+        int start = a[0].st;
+        a[n].st = 1e5;
+        a[n].ed = 1e5;
+        for(int i =1;i <= intervals.size();i++){
+            if(a[i].st <= end){
+                end = max(end, a[i].ed);
+            }else{
+                ans.push_back({start, end});
+                start = a[i].st;
+                end = a[i].ed;
+            }
+        }
+        return ans;
+    }
+};
+```
+
+### 解法说明
+
+先将区间按起点升序、终点升序排列，再依次判断当前区间是否与正在合并的区间重叠。若当前起点不大于已有终点，则扩展终点；否则保存已有区间并开始合并新区间。代码末尾加入哨兵区间，确保最后一个合并结果被写入答案。
+
+### 复杂度
+
+- 时间复杂度：`O(n log n)`
+- 空间复杂度：`O(n)`，使用了固定大小的区间数组；不计返回结果
