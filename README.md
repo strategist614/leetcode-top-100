@@ -71,3 +71,88 @@ public:
 
 - 时间复杂度：`O(n log n)`
 - 空间复杂度：`O(n)`
+
+---
+
+## 2. 移动零
+
+- 难度：简单
+- 题目链接：[LeetCode - 移动零](https://leetcode.cn/problems/move-zeroes/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个数组 `nums`，将所有 `0` 移动到数组末尾，同时保持非零元素的相对顺序。
+
+题目要求直接在原数组上进行操作。
+
+### 示例
+
+```text
+输入：nums = [0,1,0,3,12]
+输出：[1,3,12,0,0]
+```
+
+```text
+输入：nums = [0]
+输出：[0]
+```
+
+### 约束
+
+- `1 <= nums.length <= 10^4`
+- `-2^31 <= nums[i] <= 2^31 - 1`
+
+### 解法一：辅助数组
+
+```cpp
+class Solution {
+public:
+    void moveZeroes(vector<int>& nums) {
+        vector<int> ans;
+        for(int i = 0;i < nums.size();i++){
+            if(nums[i]) ans.push_back(nums[i]);
+        }
+        for(int i = 0;i < nums.size();i++){
+            if(i < ans.size()) nums[i] = ans[i];
+            else nums[i] = 0;
+        }
+    }
+};
+```
+
+#### 解法说明
+
+先将所有非零元素按原有顺序保存到辅助数组 `ans`，再依次写回 `nums`，剩余位置补 `0`。
+
+#### 复杂度
+
+- 时间复杂度：`O(n)`
+- 空间复杂度：`O(n)`
+
+> 该解法能够保持非零元素的相对顺序，但使用了辅助数组，因此不是严格的原地 `O(1)` 空间解法。
+
+### 解法二：双指针（原地）
+
+```cpp
+class Solution {
+public:
+    void moveZeroes(vector<int>& nums) {
+        int slow = 0;
+        for(int fast = 0;fast < nums.size(); fast++){
+            if(nums[fast] != 0){
+                if(slow != fast) swap(nums[fast], nums[slow]);
+                slow++;
+            }
+        }
+    }
+};
+```
+
+#### 解法说明
+
+使用 `slow` 指向下一个非零元素应该放置的位置，使用 `fast` 遍历数组。遇到非零元素时，将它与 `slow` 位置的元素交换，然后将 `slow` 向后移动。这样可以原地把所有零移动到数组末尾，并保持非零元素的相对顺序。
+
+#### 复杂度
+
+- 时间复杂度：`O(n)`
+- 空间复杂度：`O(1)`
