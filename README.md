@@ -931,3 +931,142 @@ public:
 - 空间复杂度：`O(numRows^2)`，用于保存递推状态和返回结果
 
 > 原代码中的局部数组未初始化，但递推会读取 `a[i - 1][0]` 等边界位置，可能产生未定义行为；这里补充了 `= {}` 进行零初始化，不改变原有解题思路。
+
+---
+
+## 94. 二叉树的中序遍历
+
+- 难度：简单
+- 题目链接：[LeetCode - 二叉树的中序遍历](https://leetcode.cn/problems/binary-tree-inorder-traversal/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个二叉树的根节点 `root`，返回它的中序遍历结果。
+
+中序遍历的访问顺序为：左子树、根节点、右子树。
+
+### 示例
+
+```text
+输入：root = [1,null,2,3]
+输出：[1,3,2]
+```
+
+```text
+输入：root = []
+输出：[]
+```
+
+```text
+输入：root = [1]
+输出：[1]
+```
+
+### 约束
+
+- 树中节点数在 `[0, 100]` 范围内
+- `-100 <= Node.val <= 100`
+
+### 我的代码
+
+```cpp
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    vector<int> ans;
+    void dfs(TreeNode* node){
+        if(node == nullptr) return;
+        dfs(node->left);
+        ans.push_back(node->val);
+        dfs(node->right);
+    }
+    vector<int> inorderTraversal(TreeNode* root) {
+        dfs(root);
+        return ans;
+    }
+};
+```
+
+### 解法说明
+
+使用递归深度优先遍历。先递归访问左子树，再记录当前节点的值，最后递归访问右子树，得到中序遍历序列。
+
+### 复杂度
+
+- 时间复杂度：`O(n)`，每个节点访问一次
+- 空间复杂度：`O(h)`，递归栈深度取决于树高；不计返回结果
+
+---
+
+## 198. 打家劫舍
+
+- 难度：中等
+- 题目链接：[LeetCode - 打家劫舍](https://leetcode.cn/problems/house-robber/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个表示每间房屋存放金额的非负整数数组，相邻房屋不能在同一晚被偷窃。求在不触发警报的情况下能够偷窃到的最高金额。
+
+### 示例
+
+```text
+输入：nums = [1,2,3,1]
+输出：4
+解释：偷窃金额为 1 和 3 的两间房屋，最高金额为 4。
+```
+
+```text
+输入：nums = [2,7,9,3,1]
+输出：12
+解释：偷窃金额为 2、9 和 1 的三间房屋，最高金额为 12。
+```
+
+### 约束
+
+- `1 <= nums.length <= 100`
+- `0 <= nums[i] <= 400`
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    int rob(vector<int>& nums) {
+        int dp[105] = {};
+        dp[0] = nums[0];
+        int maxn = dp[0];
+        if(nums.size() >= 2){
+            dp[1] = max(nums[0], nums[1]);
+            maxn = max(maxn, dp[1]);
+        }
+        for(int i = 2;i < nums.size();i++){
+            for(int j = 0;j < i - 1;j++){
+                dp[i] = max(dp[i], dp[j] + nums[i]);
+                maxn = max(maxn, dp[i]);
+            }
+        }
+        return maxn;
+    }
+};
+```
+
+### 解法说明
+
+使用动态规划枚举当前偷窃的房屋 `i`，再遍历所有与它不相邻的前置房屋 `j`，通过 `dp[j] + nums[i]` 更新当前状态。`maxn` 记录所有状态中的最大金额。
+
+### 复杂度
+
+- 时间复杂度：`O(n^2)`
+- 空间复杂度：`O(n)`
+
+> 原代码中的 `dp[i]` 在参与 `max` 比较前未初始化，可能产生未定义行为；这里将数组零初始化，不改变原有动态规划思路。该题也可以通过一维线性状态转移优化到 `O(n)` 时间和 `O(1)` 额外空间。
