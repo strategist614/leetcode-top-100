@@ -74,7 +74,7 @@ public:
 
 ---
 
-## 2. 移动零
+## 283. 移动零
 
 - 难度：简单
 - 题目链接：[LeetCode - 移动零](https://leetcode.cn/problems/move-zeroes/description/?envType=study-plan-v2&envId=top-100-liked)
