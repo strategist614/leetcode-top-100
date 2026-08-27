@@ -156,3 +156,149 @@ public:
 
 - 时间复杂度：`O(n)`
 - 空间复杂度：`O(1)`
+
+---
+
+## 11. 盛最多水的容器
+
+- 难度：中等
+- 题目链接：[LeetCode - 盛最多水的容器](https://leetcode.cn/problems/container-with-most-water/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个长度为 `n` 的整数数组 `height`。第 `i` 条垂线的两个端点为 `(i, 0)` 和 `(i, height[i])`。
+
+找出其中两条垂线，使它们与 `x` 轴构成的容器能够容纳最多的水，并返回最大水量。容器不能倾斜。
+
+### 示例
+
+```text
+输入：height = [1,8,6,2,5,4,8,3,7]
+输出：49
+```
+
+```text
+输入：height = [1,1]
+输出：1
+```
+
+### 约束
+
+- `n == height.length`
+- `2 <= n <= 10^5`
+- `0 <= height[i] <= 10^4`
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    int maxArea(vector<int>& height) {
+        int left = 0;
+        int right = height.size() - 1;
+        int ans = 0;
+        while(left < right){
+            ans = max(ans, min(height[left], height[right]) * (right - left));
+            if(height[left] < height[right]) left++;
+            else right--;
+        }
+        return ans;
+    }
+};
+```
+
+### 解法说明
+
+使用左右双指针计算当前容器面积。每次向内移动高度较小的一侧，因为容器的高度由较短的垂线决定，移动较高的一侧无法得到更大的面积。
+
+### 复杂度
+
+- 时间复杂度：`O(n)`
+- 空间复杂度：`O(1)`
+
+---
+
+## 15. 三数之和
+
+- 难度：中等
+- 题目链接：[LeetCode - 三数之和](https://leetcode.cn/problems/3sum/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个整数数组 `nums`，找出所有由三个不同下标对应的元素组成、元素之和为 `0` 的三元组。
+
+答案中不能包含重复的三元组，三元组及答案的顺序不限。
+
+### 示例
+
+```text
+输入：nums = [-1,0,1,2,-1,-4]
+输出：[[-1,-1,2],[-1,0,1]]
+```
+
+```text
+输入：nums = [0,1,1]
+输出：[]
+```
+
+```text
+输入：nums = [0,0,0]
+输出：[[0,0,0]]
+```
+
+### 约束
+
+- `3 <= nums.length <= 3000`
+- `-10^5 <= nums[i] <= 10^5`
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    vector<vector<int>> threeSum(vector<int>& nums) {
+        sort(nums.begin(), nums.end());
+        vector<vector<int>> ans;
+        for (int i = 0; i < nums.size(); i++) {
+            if (nums[i] > 0)
+                break;
+            if (i > 0 && nums[i] == nums[i - 1])
+                continue;
+
+            int left = i + 1;
+            int right = nums.size() - 1;
+
+            while (left < right) {
+                int sum = nums[left] + nums[right] + nums[i];
+                if (sum < 0)
+                    left++;
+                else if (sum > 0)
+                    right--;
+                else {
+                    ans.push_back({nums[i], nums[left], nums[right]});
+                    while (left < right && nums[left] == nums[left + 1]) {
+                        left++;
+                    }
+
+                    while (left < right && nums[right] == nums[right - 1]) {
+                        right--;
+                    }
+
+                    left++;
+                    right--;
+                }
+            }
+        }
+        return ans;
+    }
+};
+```
+
+### 解法说明
+
+先对数组排序，然后依次固定第一个数，并在它右侧使用双指针寻找另外两个数。根据三数之和与 `0` 的大小移动左右指针，并跳过重复元素，确保结果中没有重复三元组。
+
+### 复杂度
+
+- 时间复杂度：`O(n^2)`
+- 空间复杂度：`O(log n)`，取决于排序实现使用的栈空间；不计返回结果
