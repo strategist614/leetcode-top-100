@@ -1070,3 +1070,157 @@ public:
 - 空间复杂度：`O(n)`
 
 > 原代码中的 `dp[i]` 在参与 `max` 比较前未初始化，可能产生未定义行为；这里将数组零初始化，不改变原有动态规划思路。该题也可以通过一维线性状态转移优化到 `O(n)` 时间和 `O(1)` 额外空间。
+
+---
+
+## 104. 二叉树的最大深度
+
+- 难度：简单
+- 题目链接：[LeetCode - 二叉树的最大深度](https://leetcode.cn/problems/maximum-depth-of-binary-tree/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个二叉树的根节点 `root`，返回该二叉树的最大深度。最大深度是从根节点到最远叶子节点的最长路径所包含的节点数。
+
+### 示例
+
+```text
+输入：root = [3,9,20,null,null,15,7]
+输出：3
+```
+
+```text
+输入：root = [1,null,2]
+输出：2
+```
+
+### 约束
+
+- 树中节点数在 `[0, 10^4]` 范围内
+- `-100 <= Node.val <= 100`
+
+### 我的代码
+
+```cpp
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    int maxn = 0;
+
+    void dfs(TreeNode* root, int depth) {
+        if (root == nullptr) {
+            return;
+        }
+
+        if (root->left == nullptr && root->right == nullptr) {
+            maxn = max(maxn, depth);
+            return;
+        }
+
+        dfs(root->left, depth + 1);
+        dfs(root->right, depth + 1);
+    }
+
+    int maxDepth(TreeNode* root) {
+        if (root == nullptr) return 0;
+
+        dfs(root, 1);
+        return maxn;
+    }
+};
+```
+
+### 解法说明
+
+使用深度优先搜索遍历二叉树，并通过参数 `depth` 记录当前节点深度。到达叶子节点时，用当前深度更新最大值 `maxn`；空树的最大深度为 `0`。
+
+### 复杂度
+
+- 时间复杂度：`O(n)`，每个节点至多访问一次
+- 空间复杂度：`O(h)`，递归栈深度取决于树高
+
+---
+
+## 226. 翻转二叉树
+
+- 难度：简单
+- 题目链接：[LeetCode - 翻转二叉树](https://leetcode.cn/problems/invert-binary-tree/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一棵二叉树的根节点 `root`，翻转这棵二叉树，并返回其根节点。
+
+### 示例
+
+```text
+输入：root = [4,2,7,1,3,6,9]
+输出：[4,7,2,9,6,3,1]
+```
+
+```text
+输入：root = [2,1,3]
+输出：[2,3,1]
+```
+
+```text
+输入：root = []
+输出：[]
+```
+
+### 约束
+
+- 树中节点数在 `[0, 100]` 范围内
+- `-100 <= Node.val <= 100`
+
+### 我的代码
+
+```cpp
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    void dfs(TreeNode* node){
+        if(node == nullptr) return;
+        if(node->left == nullptr && node->right == nullptr) return;
+        TreeNode* left = node->left;
+        TreeNode* right = node->right;
+        dfs(node->left);
+        dfs(node->right);
+        node->left = right;
+        node->right = left;
+    }
+
+    TreeNode* invertTree(TreeNode* root) {
+        dfs(root);
+        return root;
+    }
+};
+```
+
+### 解法说明
+
+使用深度优先搜索递归遍历二叉树。先保存当前节点原来的左右子节点并分别递归翻转子树，再交换当前节点的左右指针。空节点和叶子节点无需处理。
+
+### 复杂度
+
+- 时间复杂度：`O(n)`，每个节点至多访问一次
+- 空间复杂度：`O(h)`，递归栈深度取决于树高
