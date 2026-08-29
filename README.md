@@ -1776,3 +1776,453 @@ public:
 
 - 时间复杂度：`O(n)`，每个节点访问一次
 - 空间复杂度：`O(w)`，`w` 为二叉树的最大层宽；不计返回结果
+
+---
+
+## 121. 买卖股票的最佳时机
+
+- 难度：简单
+- 题目链接：[LeetCode - 买卖股票的最佳时机](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个数组 `prices`，其中 `prices[i]` 表示某支股票第 `i` 天的价格。选择一天买入，并在之后的某一天卖出，求一笔交易能够获得的最大利润；如果无法获得利润，则返回 `0`。
+
+### 示例
+
+```text
+输入：prices = [7,1,5,3,6,4]
+输出：5
+解释：价格为 1 时买入，价格为 6 时卖出，最大利润为 5。
+```
+
+```text
+输入：prices = [7,6,4,3,1]
+输出：0
+解释：价格持续下降，不进行交易。
+```
+
+### 约束
+
+- `1 <= prices.length <= 10^5`
+- `0 <= prices[i] <= 10^4`
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int minn = 10000;
+        int maxn = 0;
+        for(int i = 0;i< prices.size();i++){
+            maxn = max(maxn, prices[i] - minn);
+            if(prices[i] < minn){
+                minn = prices[i];
+            }
+        }
+        return maxn;
+    }
+};
+```
+
+### 解法说明
+
+从左到右遍历价格，`minn` 记录当前日期之前出现过的最低价格，`maxn` 记录以当前价格卖出时能够得到的最大利润。每次先更新利润，再更新最低买入价格。
+
+### 复杂度
+
+- 时间复杂度：`O(n)`
+- 空间复杂度：`O(1)`
+
+---
+
+## 55. 跳跃游戏
+
+- 难度：中等
+- 题目链接：[LeetCode - 跳跃游戏](https://leetcode.cn/problems/jump-game/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个非负整数数组 `nums`，初始位置在下标 `0`。数组中的每个元素表示从当前位置最多可以向前跳跃的步数，判断能否到达数组的最后一个下标。
+
+### 示例
+
+```text
+输入：nums = [2,3,1,1,4]
+输出：true
+解释：可以先跳到下标 1，再从下标 1 跳到最后一个位置。
+```
+
+```text
+输入：nums = [3,2,1,0,4]
+输出：false
+解释：无论如何都会到达下标 3，而该位置无法继续向前跳跃。
+```
+
+### 约束
+
+- `1 <= nums.length <= 10^4`
+- `0 <= nums[i] <= 10^5`
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    struct node {
+        int st;
+        int ed;
+    } a[10005];
+
+    static bool cmp(node a, node b) {
+        if (a.st != b.st)
+            return a.st < b.st;
+        return a.ed < b.ed;
+    }
+
+    bool canJump(vector<int>& nums) {
+        for(int i = 0;i < nums.size();i++){
+            a[i].st = i;
+            a[i].ed = i + nums[i];
+        }
+        int n = nums.size();
+        sort(a, a + n, cmp);
+        int st = a[0].st;
+        int ed = a[0].ed;
+        for(int i = 1;i < n - 1;i++){
+            if(a[i].st <= ed){
+                ed = max(ed, a[i].ed);
+                // cout << i << ' ' << ed << endl;
+            }else {
+                return false;
+            }
+        }
+        // cout << a[0].ed << endl;
+        // cout << ed << endl;
+        if(ed < n - 1) return false;
+        return true;
+    }
+};
+```
+
+### 解法说明
+
+将每个下标 `i` 转换为可跳跃区间 `[i, i + nums[i]]`，排序后从左到右合并所有与当前可达范围相连的区间。`ed` 记录当前能够到达的最远位置；如果某个区间的起点大于 `ed`，说明中间出现了无法跨越的位置。遍历结束后，判断 `ed` 是否覆盖最后一个下标。
+
+### 复杂度
+
+- 时间复杂度：`O(n log n)`，主要来自区间排序
+- 空间复杂度：`O(n)`，使用数组保存每个位置对应的区间
+
+> 因为 `a[i].st = i`，这些区间本身已经按起点有序，所以可以省略排序，将时间复杂度进一步优化为 `O(n)`。
+
+---
+
+## 45. 跳跃游戏 II
+
+- 难度：中等
+- 题目链接：[LeetCode - 跳跃游戏 II](https://leetcode.cn/problems/jump-game-ii/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个长度为 `n` 的非负整数数组 `nums`，初始位置在下标 `0`。`nums[i]` 表示从下标 `i` 最多可以向前跳跃的步数，求到达最后一个下标所需的最少跳跃次数。题目保证最后一个下标一定可以到达。
+
+### 示例
+
+```text
+输入：nums = [2,3,1,1,4]
+输出：2
+解释：先从下标 0 跳到下标 1，再从下标 1 跳到最后一个位置。
+```
+
+```text
+输入：nums = [2,3,0,1,4]
+输出：2
+```
+
+### 约束
+
+- `1 <= nums.length <= 10^4`
+- `0 <= nums[i] <= 1000`
+- 题目保证可以到达下标 `n - 1`
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    int dp[10005];
+
+    int jump(vector<int>& nums) {
+        int n = nums.size() - 1;
+        memset(dp, 0x3f, sizeof(dp));
+        dp[0] = 0;
+        for(int i = 0;i < nums.size();i++){
+            for(int j = 0;j < i;j++){
+                if(j + nums[j] >= i){
+                    dp[i] = min(dp[i], dp[j] + 1);
+                }
+            }
+        }
+
+        return dp[n];
+    }
+};
+```
+
+### 解法说明
+
+使用动态规划，`dp[i]` 表示从下标 `0` 到达下标 `i` 所需的最少跳跃次数。先将所有状态初始化为较大的值，并令 `dp[0] = 0`。对于每个位置 `i`，枚举它前面的所有位置 `j`；当 `j + nums[j] >= i` 时，说明可以从 `j` 跳到 `i`，于是使用 `dp[j] + 1` 更新 `dp[i]`。最终返回 `dp[n - 1]`。
+
+### 复杂度
+
+- 时间复杂度：`O(n^2)`，每个位置都枚举其前面的所有位置
+- 空间复杂度：`O(n)`，使用 `dp` 数组保存状态
+
+---
+
+## 763. 划分字母区间
+
+- 难度：中等
+- 题目链接：[LeetCode - 划分字母区间](https://leetcode.cn/problems/partition-labels/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个仅由小写英文字母组成的字符串 `s`，将它划分为尽可能多的片段，使同一个字母最多只出现在一个片段中。返回每个片段的长度，所有片段按原顺序连接后仍然是原字符串。
+
+### 示例
+
+```text
+输入：s = "ababcbacadefegdehijhklij"
+输出：[9,7,8]
+解释：字符串可以划分为 "ababcbaca"、"defegde" 和 "hijhklij"。
+```
+
+```text
+输入：s = "eccbbbbdec"
+输出：[10]
+```
+
+### 约束
+
+- `1 <= s.length <= 500`
+- `s` 仅由小写英文字母组成
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    struct node{
+        int st;
+        int ed;
+    }a[1005];
+
+    static bool cmp(node a, node b){
+        if(a.st != b.st) return a.st < b.st;
+        return a.ed < b.ed;
+    }
+
+    vector<int> partitionLabels(string s){
+        map<int, int> mp;
+        vector<int> ans;
+        for(int i = 0;i < 1005;i++) a[i].st = 505, a[i].ed = 505;
+        for(int i = 0;i < s.size();i++){
+            if(mp.find((s[i] - 'a')) != mp.end()){
+                mp[s[i] - 'a'] = i;
+            }else {
+                a[s[i] - 'a'].st = i;
+                mp[s[i] - 'a'] = i;
+            }
+        }
+
+        for (auto &x : mp) {
+            a[x.first].ed = x.second;
+        }
+        sort(a, a + 26, cmp);
+        int ed = a[0].ed;
+        int st = a[0].st;
+
+        for(int i = 1;i < 26;i++){
+            if(a[i].st == 505 && a[i].ed == 505) continue;
+            if(a[i].st < ed){
+                ed = max(ed, a[i].ed);
+            }else{
+                ans.push_back(ed - st + 1);
+                st = a[i].st;
+                ed = a[i].ed;
+            }
+        }
+        ans.push_back(ed-st+1);
+        return ans;
+    }
+};
+```
+
+### 解法说明
+
+先记录每个字母第一次和最后一次出现的位置，将每个出现过的字母转换为一个区间 `[st, ed]`。按照区间起点排序后，从左到右合并存在重叠的区间；相互重叠的字母必须属于同一个片段。当下一个区间与当前区间不重叠时，当前区间就形成一个合法片段，将它的长度加入结果。
+
+### 复杂度
+
+- 时间复杂度：`O(n)`，字母表大小固定为 26，区间排序可以视为常数开销
+- 空间复杂度：`O(1)`，只保存固定数量的小写字母区间
+
+---
+
+## 41. 缺失的第一个正数
+
+- 难度：困难
+- 题目链接：[LeetCode - 缺失的第一个正数](https://leetcode.cn/problems/first-missing-positive/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个未排序的整数数组 `nums`，找出数组中没有出现的最小正整数。要求算法的时间复杂度为 `O(n)`，并且只使用常数级额外空间。
+
+### 示例
+
+```text
+输入：nums = [1,2,0]
+输出：3
+```
+
+```text
+输入：nums = [3,4,-1,1]
+输出：2
+```
+
+```text
+输入：nums = [7,8,9,11,12]
+输出：1
+```
+
+### 约束
+
+- `1 <= nums.length <= 10^5`
+- `-2^31 <= nums[i] <= 2^31 - 1`
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    int firstMissingPositive(vector<int>& nums) {
+        int n = nums.size();
+
+        // 1. 无关数字全部改成 n+1
+        for (int i = 0; i < n; i++) {
+            if (nums[i] <= 0 || nums[i] > n) {
+                nums[i] = n + 1;
+            }
+        }
+
+        // 2. 用正负号标记 1~n 是否出现
+        for (int i = 0; i < n; i++) {
+            int x = abs(nums[i]);
+
+            if (x >= 1 && x <= n) {
+                nums[x - 1] = -abs(nums[x - 1]);
+            }
+        }
+
+        // 3. 第一个还是正数的位置，就是没出现
+        for (int i = 0; i < n; i++) {
+            if (nums[i] > 0) {
+                return i + 1;
+            }
+        }
+
+        return n + 1;
+    }
+};
+```
+
+### 解法说明
+
+对于长度为 `n` 的数组，答案一定处于 `[1, n + 1]`。首先把不在 `[1, n]` 范围内的数字替换为 `n + 1`，避免它们干扰标记。随后把数值 `x` 映射到下标 `x - 1`，通过将该位置的数字改为负数，表示 `x` 已经出现。最后从左到右查找第一个仍为正数的位置，其下标加一就是缺失的最小正整数；如果所有位置都被标记，则答案为 `n + 1`。
+
+### 复杂度
+
+- 时间复杂度：`O(n)`，对数组进行三次线性遍历
+- 空间复杂度：`O(1)`，直接使用原数组进行标记
+
+---
+
+## 17. 电话号码的字母组合
+
+- 难度：中等
+- 题目链接：[LeetCode - 电话号码的字母组合](https://leetcode.cn/problems/letter-combinations-of-a-phone-number/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个仅包含数字 `2` 到 `9` 的字符串 `digits`，根据电话按键上数字与字母的对应关系，返回该字符串能够表示的所有字母组合。答案可以按任意顺序返回。
+
+### 示例
+
+```text
+输入：digits = "23"
+输出：["ad","ae","af","bd","be","bf","cd","ce","cf"]
+```
+
+```text
+输入：digits = "2"
+输出：["a","b","c"]
+```
+
+### 约束
+
+- `1 <= digits.length <= 4`
+- `digits[i]` 是范围 `['2', '9']` 内的数字
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    map<string, string> mp;
+    vector<string> ans;
+    int n;
+    string d;
+
+    void dfs(int dep, string s){
+        if(dep == n){
+            ans.push_back(s);
+            return;
+        }
+        string s_d = "";
+        s_d += d[dep];
+        string _ = mp[s_d];
+        for(int i = 0;i < _.size();i++){
+            dfs(dep + 1, s + _[i]);
+        }
+    }
+
+    vector<string> letterCombinations(string digits) {
+        n = digits.size();
+        d = digits;
+        mp["2"] = "abc";
+        mp["3"] = "def";
+        mp["4"] = "ghi";
+        mp["5"] = "jkl";
+        mp["6"] = "mno";
+        mp["7"] = "pqrs";
+        mp["8"] = "tuv";
+        mp["9"] = "wxyz";
+
+        dfs(0, "");
+        return ans;
+    }
+};
+```
+
+### 解法说明
+
+先建立数字字符串到候选字母的映射。回溯函数 `dfs(dep, s)` 表示正在为第 `dep` 个数字选择字母，`s` 保存当前已经形成的组合。每一层枚举当前数字对应的所有字母，并递归处理下一个数字；当 `dep == n` 时，一个完整组合生成，将其加入答案数组。
+
+### 复杂度
+
+- 时间复杂度：`O(n * 4^n)`，最多生成 `4^n` 个长度为 `n` 的组合
+- 空间复杂度：`O(n)`，不计返回结果时，递归深度和当前字符串长度均为 `n`
+
+> 当前题目约束保证 `digits` 非空。如果将代码用于允许空字符串的接口，需要在调用 `dfs` 前增加 `if (digits.empty()) return {};`，否则会返回一个空字符串组成的数组 `[""]`。
