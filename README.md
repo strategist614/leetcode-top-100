@@ -1224,3 +1224,555 @@ public:
 
 - 时间复杂度：`O(n)`，每个节点至多访问一次
 - 空间复杂度：`O(h)`，递归栈深度取决于树高
+
+---
+
+## 101. 对称二叉树
+
+- 难度：简单
+- 题目链接：[LeetCode - 对称二叉树](https://leetcode.cn/problems/symmetric-tree/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一棵二叉树的根节点 `root`，检查这棵二叉树是否关于中心轴对称。
+
+### 示例
+
+```text
+输入：root = [1,2,2,3,4,4,3]
+输出：true
+```
+
+```text
+输入：root = [1,2,2,null,3,null,3]
+输出：false
+```
+
+### 约束
+
+- 树中节点数在 `[1, 1000]` 范围内
+- `-100 <= Node.val <= 100`
+
+### 方法一：层序遍历
+
+```cpp
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    bool isSymmetric(TreeNode* root) {
+        if (root == nullptr)
+            return true;
+        queue<TreeNode*> q;
+        q.push(root);
+        while (!q.empty()) {
+            int size = q.size();
+            vector<TreeNode*> level;
+            bool hasNode = false;
+            for (int i = 0; i < size; i++) {
+                TreeNode* node = q.front();
+                q.pop();
+                level.push_back(node);
+                if (node == nullptr) {
+                    q.push(nullptr);
+                    q.push(nullptr);
+                } else {
+                    q.push(node->left);
+                    q.push(node->right);
+                    if (node->left || node->right)
+                        hasNode = true;
+                }
+            }
+            // 判断这一层是否镜像
+            int l = 0;
+            int r = level.size() - 1;
+            while (l < r) {
+                if (level[l] == nullptr && level[r] == nullptr) {
+                    l++;
+                    r--;
+                    continue;
+                }
+                if (level[l] == nullptr || level[r] == nullptr)
+                    return false;
+                if (level[l]->val != level[r]->val)
+                    return false;
+                l++;
+                r--;
+            }
+            // 下一层已经全是 null，不用继续
+            if (!hasNode)
+                break;
+        }
+        return true;
+    }
+};
+```
+
+#### 解法说明
+
+使用队列逐层遍历，将包括空节点在内的当前层保存到 `level`，再从两端向中间比较节点是否镜像。`hasNode` 用于判断下一层是否还包含真实节点，避免无限处理空节点。
+
+#### 复杂度
+
+- 时间复杂度：最坏为 `O(2^h)`
+- 空间复杂度：最坏为 `O(2^h)`
+
+> 该实现会为每个空节点继续加入两个空子节点。对于层数较深且稀疏但仍保持对称的树，队列可能包含大量占位空节点。
+
+### 方法二：递归比较
+
+```cpp
+class Solution {
+public:
+    bool check(TreeNode* a, TreeNode* b) {
+        if(a == nullptr && b == nullptr)
+            return true;
+
+        if(a == nullptr || b == nullptr)
+            return false;
+
+        if(a->val != b->val)
+            return false;
+
+        return check(a->left, b->right) &&
+               check(a->right, b->left);
+    }
+
+    bool isSymmetric(TreeNode* root) {
+        if(root == nullptr) return true;
+
+        return check(root->left, root->right);
+    }
+};
+```
+
+#### 解法说明
+
+递归比较两个互为镜像位置的节点：它们必须同时为空，或者值相等且 `a` 的左子树与 `b` 的右子树对称、`a` 的右子树与 `b` 的左子树对称。
+
+#### 复杂度
+
+- 时间复杂度：`O(n)`
+- 空间复杂度：`O(h)`，递归栈深度取决于树高
+
+---
+
+## 543. 二叉树的直径
+
+- 难度：简单
+- 题目链接：[LeetCode - 二叉树的直径](https://leetcode.cn/problems/diameter-of-binary-tree/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一棵二叉树的根节点，返回这棵树的直径。二叉树的直径是任意两个节点之间最长路径的长度，使用路径上的边数表示，并且该路径不一定经过根节点。
+
+### 示例
+
+```text
+输入：root = [1,2,3,4,5]
+输出：3
+解释：最长路径可以是 [4,2,1,3] 或 [5,2,1,3]。
+```
+
+```text
+输入：root = [1,2]
+输出：1
+```
+
+### 约束
+
+- 树中节点数在 `[1, 10^4]` 范围内
+- `-100 <= Node.val <= 100`
+
+### 我的代码
+
+```cpp
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    int maxn = 0;
+
+    int dfs(TreeNode* node){
+        if(node == nullptr) return 0;
+        if(node->left == nullptr && node->right == nullptr) return 1;
+        int l = dfs(node->left);
+        int r = dfs(node->right);
+        maxn = max(maxn, l + r);
+        return max(l, r) + 1;
+    }
+
+    int diameterOfBinaryTree(TreeNode* root) {
+        dfs(root);
+        return maxn;
+    }
+};
+```
+
+### 解法说明
+
+使用后序遍历计算每个节点左右子树的高度。对于当前节点，经过它的最长路径边数为 `l + r`，用该值更新全局最大直径；当前节点向父节点返回的高度为 `max(l, r) + 1`。
+
+### 复杂度
+
+- 时间复杂度：`O(n)`，每个节点访问一次
+- 空间复杂度：`O(h)`，递归栈深度取决于树高
+
+---
+
+## 102. 二叉树的层序遍历
+
+- 难度：中等
+- 题目链接：[LeetCode - 二叉树的层序遍历](https://leetcode.cn/problems/binary-tree-level-order-traversal/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一棵二叉树的根节点 `root`，返回其节点值的层序遍历结果，即从上到下逐层、每层从左到右访问所有节点。
+
+### 示例
+
+```text
+输入：root = [3,9,20,null,null,15,7]
+输出：[[3],[9,20],[15,7]]
+```
+
+```text
+输入：root = [1]
+输出：[[1]]
+```
+
+```text
+输入：root = []
+输出：[]
+```
+
+### 约束
+
+- 树中节点数在 `[0, 2000]` 范围内
+- `-1000 <= Node.val <= 1000`
+
+### 我的代码
+
+```cpp
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    vector<vector<int>> ans;
+
+    void bfs(TreeNode* root){
+        if(root == nullptr) return;
+        queue<TreeNode*> q;
+        q.push(root);
+        vector<int> v;
+        while(q.size()){
+            int size = q.size();
+            ans.push_back(v);
+            v.clear();
+            for(int i = 0;i < size;i++){
+                TreeNode* node = q.front();
+                q.pop();
+                if(node != nullptr){
+                    v.push_back(node->val);
+                    q.push(node->left);
+                    q.push(node->right);
+                }
+            }
+        }
+        ans.erase(ans.begin());
+    }
+
+    vector<vector<int>> levelOrder(TreeNode* root) {
+        bfs(root);
+        return ans;
+    }
+};
+```
+
+### 解法说明
+
+使用队列进行广度优先搜索。每轮记录当前队列长度，只处理这一层的节点，并将左右子节点加入队列。代码会在处理下一层之前把上一层结果加入 `ans`，因此最初会产生一个空数组，遍历结束后将其删除。
+
+### 复杂度
+
+- 时间复杂度：`O(n)`，每个节点访问一次
+- 空间复杂度：`O(w)`，`w` 为二叉树的最大层宽；不计返回结果
+
+---
+
+## 98. 验证二叉搜索树
+
+- 难度：中等
+- 题目链接：[LeetCode - 验证二叉搜索树](https://leetcode.cn/problems/validate-binary-search-tree/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一棵二叉树的根节点 `root`，判断它是否为有效的二叉搜索树。
+
+有效二叉搜索树的左子树只包含严格小于当前节点的值，右子树只包含严格大于当前节点的值，并且所有子树本身也必须满足这些条件。
+
+### 示例
+
+```text
+输入：root = [2,1,3]
+输出：true
+```
+
+```text
+输入：root = [5,1,4,null,null,3,6]
+输出：false
+解释：根节点为 5，但右子节点为 4。
+```
+
+### 约束
+
+- 树中节点数在 `[1, 10^4]` 范围内
+- `-2^31 <= Node.val <= 2^31 - 1`
+
+### 我的代码
+
+```cpp
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    bool dfs(TreeNode* node, long long low, long long high) {
+        if(node == nullptr)
+            return true;
+
+        if(node->val <= low || node->val >= high)
+            return false;
+
+        return dfs(node->left, low, node->val) &&
+               dfs(node->right, node->val, high);
+    }
+
+    bool isValidBST(TreeNode* root) {
+        return dfs(root, LLONG_MIN, LLONG_MAX);
+    }
+};
+```
+
+### 解法说明
+
+递归检查每个节点允许取值的开区间 `(low, high)`。进入左子树时将上界更新为当前节点值，进入右子树时将下界更新为当前节点值。使用 `long long` 的最小值和最大值作为根节点的初始边界，避免与合法的 32 位整数节点值冲突。
+
+### 复杂度
+
+- 时间复杂度：`O(n)`，每个节点访问一次
+- 空间复杂度：`O(h)`，递归栈深度取决于树高
+
+---
+
+## 230. 二叉搜索树中第 K 小的元素
+
+- 难度：中等
+- 题目链接：[LeetCode - 二叉搜索树中第 K 小的元素](https://leetcode.cn/problems/kth-smallest-element-in-a-bst/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一棵二叉搜索树的根节点 `root` 和整数 `k`，查找树中第 `k` 小的元素，其中 `k` 从 `1` 开始计数。
+
+### 示例
+
+```text
+输入：root = [3,1,4,null,2], k = 1
+输出：1
+```
+
+```text
+输入：root = [5,3,6,2,4,null,null,1], k = 3
+输出：3
+```
+
+### 约束
+
+- 树中节点数为 `n`
+- `1 <= k <= n <= 10^4`
+- `0 <= Node.val <= 10^4`
+
+### 我的代码
+
+```cpp
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    map<int, int> mp;
+
+    int dfs1(TreeNode* node){
+        if(node == nullptr) return 0;
+        if(node->left == nullptr && node->right == nullptr) {
+            mp[node->val] = 1;
+            return 1;
+        }
+        return (mp[node->val] = dfs1(node->left) + dfs1(node->right) + 1);
+    }
+
+    int ans = 0;
+
+    void dfs2(TreeNode* node, int k){
+        if(node == nullptr) return;
+        int l = 0;
+        int r = 0;
+        if(node->left != nullptr)
+            l = mp[node->left->val];
+        if(node->right != nullptr)
+            r = mp[node->right->val];
+        if(k == l + 1) {
+            ans = node->val;
+            return;
+        } else if(k < l + 1){
+            dfs2(node->left, k);
+        }else if(k > l + 1){
+            dfs2(node->right, k - l - 1);
+        }
+    }
+
+    int kthSmallest(TreeNode* root, int k) {
+        dfs1(root);
+        dfs2(root, k);
+        return ans;
+    }
+};
+```
+
+### 解法说明
+
+第一次 DFS 计算每个节点对应子树的节点数，并以节点值为键保存到 `mp`。第二次 DFS 根据左子树大小 `l` 判断当前节点在本子树中的排名：若 `k == l + 1`，当前节点就是答案；否则进入左子树，或将 `k` 减去左子树和当前节点后进入右子树。
+
+### 复杂度
+
+- 时间复杂度：`O(n log n)`，每个节点需要访问 `std::map`
+- 空间复杂度：`O(n)`，用于子树大小映射和递归栈
+
+---
+
+## 199. 二叉树的右视图
+
+- 难度：中等
+- 题目链接：[LeetCode - 二叉树的右视图](https://leetcode.cn/problems/binary-tree-right-side-view/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一棵二叉树的根节点 `root`，想象站在二叉树右侧，按照从上到下的顺序返回能够看到的节点值。
+
+### 示例
+
+```text
+输入：root = [1,2,3,null,5,null,4]
+输出：[1,3,4]
+```
+
+```text
+输入：root = [1,2,3,4,null,null,null,5]
+输出：[1,3,4,5]
+```
+
+```text
+输入：root = []
+输出：[]
+```
+
+### 约束
+
+- 树中节点数在 `[0, 100]` 范围内
+- `-100 <= Node.val <= 100`
+
+### 我的代码
+
+```cpp
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    vector<int> ans;
+
+    void bfs(TreeNode* root){
+        queue<TreeNode*> q;
+        q.push(root);
+        while(q.size()){
+            int size = q.size();
+            for(int i = 0;i < size;i++){
+                TreeNode* _ = q.front();
+                q.pop();
+                if(_ != nullptr){
+                    if(i == size - 1) ans.push_back(_->val);
+                    if(_->left != nullptr)
+                        q.push(_->left);
+                    if(_->right != nullptr)
+                        q.push(_->right);
+                }
+            }
+        }
+    }
+
+    vector<int> rightSideView(TreeNode* root) {
+        bfs(root);
+        return ans;
+    }
+};
+```
+
+### 解法说明
+
+使用队列逐层遍历二叉树。由于每层节点按照从左到右的顺序出队，因此当前层最后一个节点就是从右侧能够看到的节点，将它的值加入结果数组即可。
+
+### 复杂度
+
+- 时间复杂度：`O(n)`，每个节点访问一次
+- 空间复杂度：`O(w)`，`w` 为二叉树的最大层宽；不计返回结果
