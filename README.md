@@ -2226,3 +2226,146 @@ public:
 - 空间复杂度：`O(n)`，不计返回结果时，递归深度和当前字符串长度均为 `n`
 
 > 当前题目约束保证 `digits` 非空。如果将代码用于允许空字符串的接口，需要在调用 `dfs` 前增加 `if (digits.empty()) return {};`，否则会返回一个空字符串组成的数组 `[""]`。
+
+---
+
+## 206. 反转链表
+
+- 难度：简单
+- 题目链接：[LeetCode - 反转链表](https://leetcode.cn/problems/reverse-linked-list/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定单链表的头节点 `head`，将链表反转，并返回反转后链表的头节点。
+
+### 示例
+
+```text
+输入：head = [1,2,3,4,5]
+输出：[5,4,3,2,1]
+```
+
+```text
+输入：head = [1,2]
+输出：[2,1]
+```
+
+```text
+输入：head = []
+输出：[]
+```
+
+### 约束
+
+- 链表节点数量在 `[0, 5000]` 范围内
+- `-5000 <= Node.val <= 5000`
+
+### 我的代码
+
+```cpp
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* reverseList(ListNode* head) {
+        if(head == nullptr) return nullptr;
+        ListNode* curr = head;
+        ListNode* nt = curr->next;
+        curr->next = nullptr;
+        while(nt != nullptr){
+            ListNode* ntt = nt->next;
+            nt->next = curr;
+            curr = nt;
+            nt = ntt;
+        }
+        return curr;
+    }
+};
+```
+
+### 解法说明
+
+使用迭代方式逐个改变链表节点的指向。`curr` 表示已经完成反转部分的头节点，`nt` 表示下一个待处理节点。首先将原头节点的 `next` 置为空，使它成为反转后链表的尾节点。循环中先用 `ntt` 保存后续节点，再让 `nt->next` 指向 `curr`，最后同时向前移动三个指针。循环结束时，`curr` 就是反转后的新头节点。
+
+### 复杂度
+
+- 时间复杂度：`O(n)`，每个链表节点只访问一次
+- 空间复杂度：`O(1)`，只使用固定数量的指针变量
+
+---
+
+## 234. 回文链表
+
+- 难度：简单
+- 题目链接：[LeetCode - 回文链表](https://leetcode.cn/problems/palindrome-linked-list/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定单链表的头节点 `head`，判断该链表是否为回文链表。如果从前向后和从后向前读取的节点值相同，则返回 `true`，否则返回 `false`。
+
+### 示例
+
+```text
+输入：head = [1,2,2,1]
+输出：true
+```
+
+```text
+输入：head = [1,2]
+输出：false
+```
+
+### 约束
+
+- 链表节点数量在 `[1, 10^5]` 范围内
+- `0 <= Node.val <= 9`
+
+### 我的代码
+
+```cpp
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    bool isPalindrome(ListNode* head) {
+        vector<int> v;
+        v.push_back(0);
+        while(head != nullptr){
+            v.push_back(head->val);
+            head = head->next;
+        }
+        int n = v.size() - 1;
+        for(int i = 1;i <= n / 2;i++){
+            if(v[i] != v[n - i + 1]) return false;
+        }
+        return true;
+    }
+};
+```
+
+### 解法说明
+
+先顺序遍历链表，将所有节点值保存到数组中。数组开头额外加入一个占位元素，使有效数据从下标 `1` 开始。随后只遍历数组的前半部分，将第 `i` 个元素与倒数第 `i` 个元素 `v[n - i + 1]` 比较；只要有一组不同，链表就不是回文。所有对应位置都相同则返回 `true`。
+
+### 复杂度
+
+- 时间复杂度：`O(n)`，遍历链表和比较数组各需要线性时间
+- 空间复杂度：`O(n)`，使用数组保存全部节点值
+
+> 进阶做法可以使用快慢指针找到链表中点，原地反转后半段并逐个比较，将额外空间复杂度优化为 `O(1)`。
