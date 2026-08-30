@@ -2369,3 +2369,641 @@ public:
 - 空间复杂度：`O(n)`，使用数组保存全部节点值
 
 > 进阶做法可以使用快慢指针找到链表中点，原地反转后半段并逐个比较，将额外空间复杂度优化为 `O(1)`。
+
+---
+
+## 141. 环形链表
+
+- 难度：简单
+- 题目链接：[LeetCode - 环形链表](https://leetcode.cn/problems/linked-list-cycle/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个链表的头节点 `head`，判断链表中是否存在环。如果沿着某个节点的 `next` 指针能够再次到达已经访问过的节点，则链表有环，返回 `true`；否则返回 `false`。评测系统使用 `pos` 描述链表尾部连接的位置，但它不作为函数参数传入。
+
+### 示例
+
+```text
+输入：head = [3,2,0,-4], pos = 1
+输出：true
+解释：链表尾部连接到下标为 1 的节点。
+```
+
+```text
+输入：head = [1,2], pos = 0
+输出：true
+```
+
+```text
+输入：head = [1], pos = -1
+输出：false
+```
+
+### 约束
+
+- 链表节点数量在 `[0, 10^4]` 范围内
+- `-10^5 <= Node.val <= 10^5`
+- `pos` 为 `-1` 或链表中的有效下标
+
+### 我的代码
+
+```cpp
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    bool hasCycle(ListNode *head) {
+        map<ListNode*, int> mp;
+        while(head != nullptr){
+            if(mp.find(head) == mp.end()) {
+                mp[head] = 1;
+                head = head->next;
+            }
+            else {
+                return true;
+            }
+        }
+        return false;
+    }
+};
+```
+
+### 解法说明
+
+使用 `map` 保存已经访问过的节点地址。每次处理当前节点时，先检查它是否已经存在于 `map` 中：如果不存在，就记录该地址并沿 `next` 继续遍历；如果已经存在，说明链表沿指针再次到达了同一个节点，因此存在环。如果最终走到 `nullptr`，则链表没有环。
+
+这里必须记录节点地址而不是节点值，因为不同节点可以拥有相同的 `val`。
+
+### 复杂度
+
+- 时间复杂度：`O(n log n)`，`std::map` 的查询和插入均为 `O(log n)`
+- 空间复杂度：`O(n)`，最多保存所有访问过的节点地址
+
+> 使用哈希集合可以将平均时间复杂度优化为 `O(n)`；使用 Floyd 快慢指针可以进一步在 `O(n)` 时间内将额外空间复杂度优化为 `O(1)`。
+
+---
+
+## 21. 合并两个有序链表
+
+- 难度：简单
+- 题目链接：[LeetCode - 合并两个有序链表](https://leetcode.cn/problems/merge-two-sorted-lists/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定两个按非递减顺序排列的单链表 `list1` 和 `list2`，将它们的所有节点拼接成一个新的非递减链表，并返回合并后链表的头节点。
+
+### 示例
+
+```text
+输入：list1 = [1,2,4], list2 = [1,3,4]
+输出：[1,1,2,3,4,4]
+```
+
+```text
+输入：list1 = [], list2 = []
+输出：[]
+```
+
+```text
+输入：list1 = [], list2 = [0]
+输出：[0]
+```
+
+### 约束
+
+- 两个链表的节点数量均在 `[0, 50]` 范围内
+- `-100 <= Node.val <= 100`
+- `list1` 和 `list2` 均按非递减顺序排列
+
+### 我的代码
+
+```cpp
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) {
+        ListNode dummy;
+        ListNode* cur = &dummy;
+        while(list1 != nullptr && list2 != nullptr){
+            if(list1->val <= list2->val){
+                cur->next = list1;
+                list1 = list1->next;
+            }else{
+                cur->next = list2;
+                list2 = list2->next;
+            }
+            cur = cur->next;
+        }
+        cur->next = (list1 != nullptr ? list1 : list2);
+        return dummy.next;
+    }
+};
+```
+
+### 解法说明
+
+创建哑节点 `dummy` 作为合并链表的固定起点，使用 `cur` 指向结果链表的尾部。当两个链表都不为空时，比较当前节点值，把较小的节点连接到 `cur->next`，然后移动对应链表指针和 `cur`。循环结束后，最多只有一个链表还有剩余节点，直接将剩余部分整体连接到结果末尾，最后返回 `dummy.next`。
+
+该实现直接复用原链表节点，只改变节点之间的连接关系。
+
+### 复杂度
+
+- 时间复杂度：`O(m + n)`，两个链表中的每个节点最多处理一次
+- 空间复杂度：`O(1)`，只使用哑节点和固定数量的指针
+
+---
+
+## 2. 两数相加
+
+- 难度：中等
+- 题目链接：[LeetCode - 两数相加](https://leetcode.cn/problems/add-two-numbers/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定两个非空链表，它们分别表示两个非负整数。数字按照逆序存储，每个节点只保存一位数字。将两个数相加，并以相同的逆序链表形式返回计算结果。除数字 `0` 外，输入数字没有前导零。
+
+### 示例
+
+```text
+输入：l1 = [2,4,3], l2 = [5,6,4]
+输出：[7,0,8]
+解释：342 + 465 = 807。
+```
+
+```text
+输入：l1 = [0], l2 = [0]
+输出：[0]
+```
+
+```text
+输入：l1 = [9,9,9,9,9,9,9], l2 = [9,9,9,9]
+输出：[8,9,9,9,0,0,0,1]
+```
+
+### 约束
+
+- 每个链表的节点数量在 `[1, 100]` 范围内
+- `0 <= Node.val <= 9`
+- 链表表示的数字不含前导零
+
+### 我的代码
+
+```cpp
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
+        ListNode Dummy;
+        ListNode* cur = &Dummy;
+        int cnt = 0;
+        while(l1 != nullptr && l2 != nullptr){
+            ListNode* tmp = new ListNode();
+            int _ = cnt + l1->val + l2->val;
+            if(_ >= 10){
+                tmp->val = _ % 10;
+                cnt = _ / 10;
+            }else{
+                tmp->val = _;
+                cnt = 0;
+            }
+            l1 = l1->next;
+            l2 = l2->next;
+            cur->next = tmp;
+            cur = cur->next;
+        }
+        while(l1 != nullptr){
+            int _ = cnt + l1->val;
+            ListNode* tmp = new ListNode();
+            tmp->val = _ % 10;
+            cnt = _ / 10;
+            cur->next = tmp;
+            cur = cur->next;
+            l1 = l1->next;
+        }
+        while(l2 != nullptr){
+            int _ = cnt + l2->val;
+            ListNode* tmp = new ListNode();
+            tmp->val = _ % 10;
+            cnt = _ / 10;
+            cur->next = tmp;
+            cur = cur->next;
+            l2 = l2->next;
+        }
+        if(cnt){
+            ListNode* tmp = new ListNode();
+            tmp->val = cnt;
+            cur->next = tmp;
+        }
+        return Dummy.next;
+    }
+};
+```
+
+### 解法说明
+
+使用 `cnt` 保存上一位产生的进位，并用哑节点 `Dummy` 统一管理结果链表。两个链表都有节点时，将当前两位和进位相加，结果的个位写入新节点，十位继续作为下一轮进位。某个链表遍历结束后，继续处理另一个链表的剩余节点。最后如果 `cnt` 仍不为零，再创建一个节点保存最高位进位。
+
+由于输入链表按照个位到高位的顺序存储，可以从表头开始直接模拟竖式加法，无需反转链表。
+
+### 复杂度
+
+- 时间复杂度：`O(max(m, n))`，遍历两个输入链表的所有节点
+- 空间复杂度：`O(max(m, n))`，用于保存返回结果；除结果链表外的额外工作空间为 `O(1)`
+
+---
+
+## 19. 删除链表的倒数第 N 个结点
+
+- 难度：中等
+- 题目链接：[LeetCode - 删除链表的倒数第 N 个结点](https://leetcode.cn/problems/remove-nth-node-from-end-of-list/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个链表的头节点 `head` 和整数 `n`，删除链表的倒数第 `n` 个结点，并返回删除后的链表头节点。
+
+### 示例
+
+```text
+输入：head = [1,2,3,4,5], n = 2
+输出：[1,2,3,5]
+```
+
+```text
+输入：head = [1], n = 1
+输出：[]
+```
+
+```text
+输入：head = [1,2], n = 1
+输出：[1]
+```
+
+### 约束
+
+- 链表节点数量为 `sz`
+- `1 <= sz <= 30`
+- `0 <= Node.val <= 100`
+- `1 <= n <= sz`
+
+### 我的代码
+
+```cpp
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* removeNthFromEnd(ListNode* head, int n) {
+        ListNode* Dummy = new ListNode();
+        Dummy->next = head;
+        int size = 0;
+        while(head != nullptr){
+            size ++;
+            head = head->next;
+        }
+        int cnt = size - n + 1;
+        ListNode* cur = Dummy;
+        int pos = 0;
+        while(cur != nullptr){
+            if(pos + 1 == cnt){
+                cur->next = cur->next->next;
+                break;
+            }
+            pos++;
+            cur = cur->next;
+        }
+        return Dummy->next;
+    }
+};
+```
+
+### 解法说明
+
+先使用第一次遍历统计链表长度 `size`。倒数第 `n` 个结点对应从前向后的第 `size - n + 1` 个结点，将这个位置记为 `cnt`。随后从哑节点 `Dummy` 开始第二次遍历，找到目标结点的前驱节点，并令前驱的 `next` 跳过目标结点。哑节点能够统一处理删除原头节点的情况。
+
+### 复杂度
+
+- 时间复杂度：`O(L)`，虽然遍历两次，但总访问次数仍与链表长度 `L` 成正比
+- 空间复杂度：`O(1)`，只使用固定数量的指针和整数变量
+
+> 进阶做法可以使用间隔为 `n` 的快慢指针，在一次遍历中找到待删除结点的前驱。当前代码使用 `new` 创建哑节点；如果在需要自行管理内存的环境中使用，应在保存返回头指针后释放哑节点，并根据链表所有权规则处理被移除节点。
+
+---
+
+## 24. 两两交换链表中的节点
+
+- 难度：中等
+- 题目链接：[LeetCode - 两两交换链表中的节点](https://leetcode.cn/problems/swap-nodes-in-pairs/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个链表，两两交换其中相邻的节点，并返回交换后的链表头节点。不能修改节点内部保存的值，只能通过改变节点之间的连接关系完成交换。
+
+### 示例
+
+```text
+输入：head = [1,2,3,4]
+输出：[2,1,4,3]
+```
+
+```text
+输入：head = []
+输出：[]
+```
+
+```text
+输入：head = [1]
+输出：[1]
+```
+
+### 约束
+
+- 链表节点数量在 `[0, 100]` 范围内
+- `0 <= Node.val <= 100`
+
+### 我的代码
+
+```cpp
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* swapPairs(ListNode* head) {
+        ListNode* Dummy = new ListNode();
+        Dummy->next = head;
+        ListNode* cur = new ListNode();
+        ListNode* pre = new ListNode();
+        cur = head;
+        pre = Dummy;
+        while(cur != nullptr && cur->next != nullptr){
+            ListNode* _ = cur->next->next;
+            ListNode* __ = cur->next;
+            pre->next = __;
+            __->next = cur;
+            cur->next = _;
+            pre = cur;
+            cur = _;
+        }
+        return Dummy->next;
+    }
+};
+```
+
+### 解法说明
+
+使用哑节点 `Dummy` 处理第一对节点交换后头节点发生变化的情况。`pre` 指向当前待交换节点对的前驱，`cur` 指向这一对中的第一个节点。每轮先保存下一组的起点和当前第二个节点，然后依次修改三条连接：前驱指向第二个节点、第二个节点指向第一个节点、第一个节点指向下一组。完成后移动 `pre` 和 `cur`，继续交换下一对。若最后只剩一个节点，它会保持原位置。
+
+### 复杂度
+
+- 时间复杂度：`O(n)`，每个节点最多处理一次
+- 空间复杂度：`O(1)`，只使用固定数量的指针
+
+> `cur` 和 `pre` 创建后立即被其他地址覆盖，这两次 `new` 是多余的并会造成内存泄漏，可以直接写成 `ListNode* cur = head;` 和 `ListNode* pre = Dummy;`。此外，双下划线标识符由 C++ 实现保留，实际工程中建议将 `_`、`__` 改为 `nextPair`、`second` 等语义化名称。
+
+---
+
+## 138. 随机链表的复制
+
+- 难度：中等
+- 题目链接：[LeetCode - 随机链表的复制](https://leetcode.cn/problems/copy-list-with-random-pointer/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个链表，每个节点除 `next` 指针外还有一个 `random` 指针，它可以指向链表中的任意节点或空节点。构造该链表的深拷贝：复制链表必须由全新的节点组成，且所有 `next` 和 `random` 关系与原链表一致，复制链表中的指针不能指向原链表节点。
+
+输入和输出使用 `[val, random_index]` 表示节点，其中 `random_index` 是随机指针指向节点的下标，空指针表示为 `null`。
+
+### 示例
+
+```text
+输入：head = [[7,null],[13,0],[11,4],[10,2],[1,0]]
+输出：[[7,null],[13,0],[11,4],[10,2],[1,0]]
+```
+
+```text
+输入：head = [[1,1],[2,1]]
+输出：[[1,1],[2,1]]
+```
+
+```text
+输入：head = [[3,null],[3,0],[3,null]]
+输出：[[3,null],[3,0],[3,null]]
+```
+
+### 约束
+
+- `0 <= n <= 1000`
+- `-10^4 <= Node.val <= 10^4`
+- `Node.random` 为 `null` 或指向链表中的节点
+
+### 我的代码
+
+```cpp
+/*
+// Definition for a Node.
+class Node {
+public:
+    int val;
+    Node* next;
+    Node* random;
+
+    Node(int _val) {
+        val = _val;
+        next = NULL;
+        random = NULL;
+    }
+};
+*/
+
+class Solution {
+public:
+    Node* copyRandomList(Node* head) {
+        if(head == nullptr) return nullptr;
+
+        int pos = 0;
+        vector<Node*> v;
+        Node* hhead = head;
+        map<Node*, int> mp;
+        map<int, Node*> mp1;
+
+        // 原节点 -> 下标
+        while(head != nullptr){
+            mp[head] = pos;
+            head = head->next;
+            pos++;
+        }
+
+        // 创建所有新节点
+        head = hhead;
+        while(head != nullptr){
+            Node* node = new Node(head->val);
+            v.push_back(node);
+            head = head->next;
+        }
+
+        // 连接新链表 next
+        Node* Dummy = new Node(0);
+        Dummy->next = v[0];
+        for(int i = 0; i < v.size() - 1; i++){
+            v[i]->next = v[i + 1];
+        }
+
+        // 下标 -> 新节点
+        Node* curr = Dummy->next;
+        pos = 0;
+        while(curr != nullptr){
+            mp1[pos] = curr;
+            curr = curr->next;
+            pos++;
+        }
+
+        // 设置 random
+        curr = Dummy->next;
+        head = hhead;
+        while(head != nullptr){
+            if(head->random == nullptr){
+                curr->random = nullptr;
+            }else{
+                int p = mp[head->random];
+                curr->random = mp1[p];
+            }
+
+            curr = curr->next;
+            head = head->next;
+        }
+
+        return Dummy->next;
+    }
+};
+```
+
+### 解法说明
+
+该实现使用下标作为原链表和复制链表之间的桥梁：
+
+1. 第一次遍历建立“原节点地址 → 节点下标”的映射。
+2. 为每个原节点创建一个全新的节点，并将新节点依次连接起来。
+3. 建立“节点下标 → 新节点地址”的反向映射。
+4. 再次同步遍历原链表和新链表。若原节点的 `random` 非空，先查出它指向的原节点下标，再找到同下标的新节点，赋给复制节点的 `random`。
+
+这样复制链表中的 `next` 和 `random` 都只会指向新创建的节点，满足深拷贝要求。
+
+### 复杂度
+
+- 时间复杂度：`O(n log n)`，使用 `std::map` 建立和查询节点映射
+- 空间复杂度：`O(n)`，使用数组和两个映射保存节点关系，不计返回的新链表
+
+> 可以直接使用 `map<Node*, Node*>` 保存“原节点 → 新节点”，省去下标中转；换成哈希表后平均时间复杂度为 `O(n)`。还可以将复制节点插入原节点之后，再拆分链表，在 `O(n)` 时间内把映射所需的额外空间优化为 `O(1)`。当前哑节点由 `new` 创建但未释放，在自行管理内存的环境中应处理这一点。
+
+---
+
+## 142. 环形链表 II
+
+- 难度：中等
+- 题目链接：[LeetCode - 环形链表 II](https://leetcode.cn/problems/linked-list-cycle-ii/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定链表的头节点 `head`，返回链表开始入环的第一个节点；如果链表没有环，则返回 `nullptr`。不允许修改原链表。评测系统使用 `pos` 表示链表尾部连接的位置，但它不作为函数参数传入。
+
+### 示例
+
+```text
+输入：head = [3,2,0,-4], pos = 1
+输出：返回下标为 1 的链表节点
+```
+
+```text
+输入：head = [1,2], pos = 0
+输出：返回下标为 0 的链表节点
+```
+
+```text
+输入：head = [1], pos = -1
+输出：返回 nullptr
+```
+
+### 约束
+
+- 链表节点数量在 `[0, 10^4]` 范围内
+- `-10^5 <= Node.val <= 10^5`
+- `pos` 为 `-1` 或链表中的有效下标
+
+### 我的代码
+
+```cpp
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode *detectCycle(ListNode *head) {
+        map<ListNode*, int> mp;
+        while(head != nullptr){
+            if(mp.find(head) != mp.end()){
+                return head;
+            }
+            mp[head] = 1;
+            head = head->next;
+        }
+        return nullptr;
+    }
+};
+```
+
+### 解法说明
+
+从头节点开始顺序遍历，使用 `map` 保存所有已经访问过的节点地址。处理当前节点时，如果它已经存在于 `map` 中，说明沿着环绕行一周后再次到达了该节点；从链表头开始遍历时，第一个重复出现的节点正是入环节点，直接返回它。如果最终到达 `nullptr`，则链表没有环。
+
+记录节点地址而不是节点值，可以正确处理多个节点值相同的情况，并且整个过程不会修改链表。
+
+### 复杂度
+
+- 时间复杂度：`O(n log n)`，`std::map` 的查询和插入均为 `O(log n)`
+- 空间复杂度：`O(n)`，最多保存所有访问过的节点地址
+
+> 使用哈希集合可以获得平均 `O(n)` 时间；Floyd 快慢指针先寻找相遇点，再让一个指针回到链表头并与另一个指针同步前进，两者再次相遇的位置就是环入口，可在 `O(n)` 时间和 `O(1)` 额外空间内完成。

@@ -1,0 +1,25 @@
+#include <cstddef>
+#include <map>
+
+using namespace std;
+
+struct ListNode {
+    int val;
+    ListNode *next;
+    ListNode(int x) : val(x), next(NULL) {}
+};
+
+class Solution {
+public:
+    ListNode *detectCycle(ListNode *head) {
+        map<ListNode*, int> mp;
+        while(head != nullptr){
+            if(mp.find(head) != mp.end()){
+                return head;
+            }
+            mp[head] = 1;
+            head = head->next;
+        }
+        return nullptr;
+    }
+};
