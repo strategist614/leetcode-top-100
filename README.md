@@ -3007,3 +3007,674 @@ public:
 - 空间复杂度：`O(n)`，最多保存所有访问过的节点地址
 
 > 使用哈希集合可以获得平均 `O(n)` 时间；Floyd 快慢指针先寻找相遇点，再让一个指针回到链表头并与另一个指针同步前进，两者再次相遇的位置就是环入口，可在 `O(n)` 时间和 `O(1)` 额外空间内完成。
+
+---
+
+## 108. 将有序数组转换为二叉搜索树
+
+- 难度：简单
+- 题目链接：[LeetCode - 将有序数组转换为二叉搜索树](https://leetcode.cn/problems/convert-sorted-array-to-binary-search-tree/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个按严格递增顺序排列的整数数组 `nums`，将它转换为一棵高度平衡的二叉搜索树。高度平衡表示每个节点的左右子树高度差不超过 `1`。
+
+### 示例
+
+```text
+输入：nums = [-10,-3,0,5,9]
+输出：[0,-3,9,-10,null,5]
+解释：答案不唯一，只要生成高度平衡的二叉搜索树即可。
+```
+
+```text
+输入：nums = [1,3]
+输出：[3,1]
+解释：[1,null,3] 也是正确答案。
+```
+
+### 约束
+
+- `1 <= nums.length <= 10^4`
+- `-10^4 <= nums[i] <= 10^4`
+- `nums` 按严格递增顺序排列
+
+### 我的代码
+
+```cpp
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left),
+ *         right(right) {}
+ * };
+ */
+class Solution {
+public:
+    TreeNode* ans = new TreeNode();
+
+    TreeNode* dfs(int l, int r, vector<int> &v) {
+        if (l > r)
+            return nullptr;
+        int mid = (l + r) >> 1;
+        // cout << mid << endl;
+        TreeNode* node = new TreeNode();
+        node->val = v[mid];
+        node->left = dfs(l, mid - 1, v);
+        node->right = dfs(mid + 1, r, v);
+        return node;
+    }
+
+    TreeNode* sortedArrayToBST(vector<int>& nums) {
+        return dfs(0, nums.size() - 1, nums);
+    }
+};
+```
+
+### 解法说明
+
+递归处理数组区间 `[l, r]`。每次选择区间中点 `mid` 作为当前子树的根节点：由于数组严格递增，中点左侧的元素都小于根节点，用于构造左子树；右侧的元素都大于根节点，用于构造右子树，因此满足二叉搜索树性质。持续从每个区间的中间位置划分，也能让左右子树规模尽量接近，从而得到高度平衡的树。
+
+当 `l > r` 时区间为空，返回 `nullptr` 作为递归边界。
+
+### 复杂度
+
+- 时间复杂度：`O(n)`，每个数组元素都创建为一个树节点
+- 空间复杂度：`O(log n)`，不计返回的树节点时，平衡递归的调用栈深度为 `O(log n)`
+
+> 成员 `ans` 没有参与建树，初始化时创建的节点也不会被释放，可以直接删除这一成员。题目约束保证数组非空；如果复用到允许空数组的接口，建议显式处理空输入，避免 `nums.size() - 1` 的无符号下溢。
+
+---
+
+## 114. 二叉树展开为链表
+
+- 难度：中等
+- 题目链接：[LeetCode - 二叉树展开为链表](https://leetcode.cn/problems/flatten-binary-tree-to-linked-list/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定二叉树的根节点 `root`，将它原地展开为一个由相同 `TreeNode` 节点组成的单链表。展开后每个节点的 `left` 都必须为 `nullptr`，`right` 指向链表中的下一个节点，并且节点顺序与原二叉树的前序遍历顺序相同。
+
+### 示例
+
+```text
+输入：root = [1,2,5,3,4,null,6]
+输出：[1,null,2,null,3,null,4,null,5,null,6]
+```
+
+```text
+输入：root = []
+输出：[]
+```
+
+```text
+输入：root = [0]
+输出：[0]
+```
+
+### 约束
+
+- 树中节点数量在 `[0, 2000]` 范围内
+- `-100 <= Node.val <= 100`
+
+### 我的代码
+
+```cpp
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right)
+ *         : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    vector<TreeNode*> v;
+
+    void dfs(TreeNode* node){
+        if(node == nullptr) return;
+        v.push_back(node);
+        dfs(node->left);
+        dfs(node->right);
+    }
+
+    void flatten(TreeNode* root) {
+        if(root == nullptr) return;
+        dfs(root);
+        for(int i = 0;i < v.size() - 1;i++)
+        {
+            v[i]->left = nullptr;
+            v[i]->right = v[i + 1];
+        }
+        v.back()->left = nullptr;
+        v.back()->right = nullptr;
+    }
+};
+```
+
+### 解法说明
+
+首先通过 `dfs` 对原二叉树进行“根、左、右”的前序遍历，并按顺序保存每个节点的地址。遍历完成后，数组 `v` 中的节点顺序就是展开后链表的顺序。随后依次把每个节点的 `left` 置为空，并让 `right` 指向数组中的下一个节点。最后一个节点的左右指针都置为空。
+
+该实现只重新连接原树中的节点，没有创建新的结果节点，满足原地修改节点结构的要求。
+
+### 复杂度
+
+- 时间复杂度：`O(n)`，前序遍历和重新连接各处理每个节点一次
+- 空间复杂度：`O(n)`，数组保存全部节点；递归栈最坏也可能达到 `O(n)`
+
+> 如果同一个 `Solution` 对象可能多次调用 `flatten`，应在遍历前执行 `v.clear()`，避免保留上一次调用的节点。进阶做法可以寻找当前节点左子树的最右节点并原地接入右子树，在 `O(n)` 时间内将额外空间优化为 `O(1)`。
+
+---
+
+## 560. 和为 K 的子数组
+
+- 难度：中等
+- 题目链接：[LeetCode - 和为 K 的子数组](https://leetcode.cn/problems/subarray-sum-equals-k/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个整数数组 `nums` 和整数 `k`，统计并返回数组中元素和等于 `k` 的连续非空子数组数量。
+
+### 示例
+
+```text
+输入：nums = [1,1,1], k = 2
+输出：2
+```
+
+```text
+输入：nums = [1,2,3], k = 3
+输出：2
+```
+
+### 约束
+
+- `1 <= nums.length <= 2 * 10^4`
+- `-1000 <= nums[i] <= 1000`
+- `-10^7 <= k <= 10^7`
+
+### 做法一：前缀和 + 双重枚举
+
+```cpp
+class Solution {
+public:
+    int subarraySum(vector<int>& nums, int k) {
+        int sum[200005];
+        int n = nums.size();
+        int a[200005];
+        for(int i = 0;i < nums.size();i++) a[i+1] = nums[i];
+
+        for(int i = 1;i <= n;i++)
+        {
+            sum[i] = sum[i - 1] + a[i];
+        }
+        int ans = 0;
+        for(int i = 1;i <= n;i++){
+            for(int j=i;j <= n;j++){
+                if(sum[j] - sum[i - 1] == k) ans++;
+            }
+        }
+        return ans;
+    }
+};
+```
+
+#### 解法说明
+
+把原数组转换为从下标 `1` 开始的数组 `a`，并计算前缀和 `sum[i]`。区间 `[i, j]` 的元素和可以通过 `sum[j] - sum[i - 1]` 在 `O(1)` 时间内得到。双重循环枚举所有起点和终点，统计区间和等于 `k` 的数量。
+
+#### 复杂度
+
+- 时间复杂度：`O(n^2)`，枚举所有连续子数组
+- 空间复杂度：`O(n)`，使用数组保存转换后的数据和前缀和
+
+> 这段原代码没有初始化 `sum[0]`，第一次计算 `sum[1]` 时会读取未初始化值，产生未定义行为。需要在计算前缀和之前增加 `sum[0] = 0;`。两个长度为 `200005` 的局部数组也会占用较大的栈空间，可以改用按输入长度分配的 `vector<int>`。
+
+### 做法二：前缀和 + 哈希表
+
+```cpp
+class Solution {
+public:
+    int subarraySum(vector<int>& nums, int k) {
+        unordered_map<int, int> mp;
+
+        mp[0] = 1;
+
+        int sum = 0;
+        int ans = 0;
+
+        for(int i = 0; i < nums.size(); i++){
+            sum += nums[i];
+
+            if(mp.find(sum - k) != mp.end()){
+                ans += mp[sum - k];
+            }
+
+            mp[sum]++;
+        }
+
+        return ans;
+    }
+};
+```
+
+#### 解法说明
+
+遍历数组时，`sum` 表示当前位置的前缀和。如果此前出现过前缀和 `sum - k`，那么从这些历史位置的下一个元素到当前位置形成的子数组之和都等于 `k`，因此将其出现次数累加到答案。随后再记录当前前缀和。
+
+初始化 `mp[0] = 1` 用于统计从数组下标 `0` 开始、元素和恰好等于 `k` 的子数组。必须先查询 `sum - k` 再记录当前 `sum`，才能保证统计的是非空子数组。
+
+#### 复杂度
+
+- 时间复杂度：平均 `O(n)`，每个元素进行常数次哈希表操作
+- 空间复杂度：`O(n)`，最坏情况下保存 `n + 1` 个不同的前缀和
+
+第二种做法避免枚举所有区间，是本题更适合的实现。
+
+---
+
+## 347. 前 K 个高频元素
+
+- 难度：中等
+- 题目链接：[LeetCode - 前 K 个高频元素](https://leetcode.cn/problems/top-k-frequent-elements/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个整数数组 `nums` 和整数 `k`，返回数组中出现频率最高的前 `k` 个元素。答案可以按任意顺序返回，题目保证前 `k` 个高频元素的集合唯一。
+
+### 示例
+
+```text
+输入：nums = [1,1,1,2,2,3], k = 2
+输出：[1,2]
+```
+
+```text
+输入：nums = [1], k = 1
+输出：[1]
+```
+
+```text
+输入：nums = [1,2,1,2,1,2,3,1,3,2], k = 2
+输出：[1,2]
+```
+
+### 约束
+
+- `1 <= nums.length <= 10^5`
+- `-10^4 <= nums[i] <= 10^4`
+- `1 <= k <= nums` 中不同元素的数量
+- 题目保证答案集合唯一
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    vector<int> topKFrequent(vector<int>& nums, int k) {
+        vector<int> ans;
+        map<int, int> mp;
+        map<int, vector<int> > mp1;
+        for (int i = 0; i < nums.size(); i++)
+            mp[nums[i]]++;
+        for (auto &x:mp){
+            mp1[x.second].push_back(x.first);
+        }
+        for(int i = 100000;i>=1;i--){
+            if(mp1.find(i) != mp1.end())
+            {
+                int size = mp1[i].size();
+                k -= size;
+                for(int j = 0;j < size;j++){
+                    ans.push_back(mp1[i][j]);
+                }
+                // cout << k << endl;
+                if(k <= 0) return ans;
+            }
+        }
+        return ans;
+    }
+};
+```
+
+### 解法说明
+
+首先使用 `mp` 统计每个元素的出现次数。随后建立反向映射 `mp1`，将出现次数作为键，把具有相同频率的元素放入同一个数组。由于任意元素的出现次数不会超过数组长度 `10^5`，最后从频率 `100000` 开始向下扫描，每遇到一个频率桶就把其中元素加入答案，并相应减少还需要选择的数量，直到得到前 `k` 个高频元素。
+
+题目保证答案集合唯一，因此不会出现截止频率上的并列元素导致必须从同一频率桶中只选择一部分的情况。
+
+### 复杂度
+
+设不同元素数量为 `u`，不同频率数量为 `d`，扫描的最大频率为 `F = 10^5`：
+
+- 时间复杂度：`O(n log u + u log d + F)`，主要来自两个 `std::map` 的查询和插入
+- 空间复杂度：`O(u)`，保存元素频率和反向频率桶
+
+> 该实现最坏情况下仍可能达到 `O(n log n)`，不满足题目的线性时间进阶要求。可以使用 `unordered_map` 在平均 `O(n)` 时间内统计频率，再创建长度为 `n + 1` 的桶数组，以频率作为下标从高到低收集元素，从而实现平均 `O(n)` 时间和 `O(n)` 空间；也可以使用大小为 `k` 的小顶堆实现 `O(n log k)`。
+
+---
+
+## 279. 完全平方数
+
+- 难度：中等
+- 题目链接：[LeetCode - 完全平方数](https://leetcode.cn/problems/perfect-squares/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个整数 `n`，返回和为 `n` 所需的完全平方数的最少数量。完全平方数是某个整数与自身相乘得到的数，例如 `1`、`4`、`9` 和 `16`。
+
+### 示例
+
+```text
+输入：n = 12
+输出：3
+解释：12 = 4 + 4 + 4
+```
+
+```text
+输入：n = 13
+输出：2
+解释：13 = 4 + 9
+```
+
+### 约束
+
+- `1 <= n <= 10^4`
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    int numSquares(int n) {
+        vector<int> dp(n + 1, INT_MAX);
+
+        dp[0] = 0;
+
+        for(int i = 1; i * i <= n; i++){
+            int x = i * i;
+
+            for(int j = x; j <= n; j++){
+                dp[j] = min(dp[j], dp[j - x] + 1);
+            }
+        }
+
+        return dp[n];
+    }
+};
+```
+
+### 解法说明
+
+将每个不超过 `n` 的完全平方数看作一种可以重复选择的物品，把问题转换为完全背包。`dp[j]` 表示组成整数 `j` 所需的最少完全平方数数量，初始时只有 `dp[0] = 0`，其余状态设为无穷大。
+
+枚举平方数 `x = i * i` 后，从小到大遍历 `j`，使用状态转移：
+
+```text
+dp[j] = min(dp[j], dp[j - x] + 1)
+```
+
+内层循环从小到大遍历，使本轮刚更新的状态可以继续参与后续转移，因此同一个平方数能够被重复选择，符合完全背包的特点。平方数 `1` 会先让所有状态变为可达，因此后续执行 `dp[j - x] + 1` 不会对 `INT_MAX` 加一。
+
+### 复杂度
+
+- 时间复杂度：`O(n * sqrt(n))`，枚举约 `sqrt(n)` 个平方数，每个平方数最多遍历 `n` 个状态
+- 空间复杂度：`O(n)`，使用一维动态规划数组
+
+---
+
+## 322. 零钱兑换
+
+- 难度：中等
+- 题目链接：[LeetCode - 零钱兑换](https://leetcode.cn/problems/coin-change/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个整数数组 `coins` 表示不同面额的硬币，以及整数 `amount` 表示目标金额。每种硬币可以使用任意次，返回凑成目标金额所需的最少硬币数量；如果无法组成该金额，则返回 `-1`。
+
+### 示例
+
+```text
+输入：coins = [1,2,5], amount = 11
+输出：3
+解释：11 = 5 + 5 + 1
+```
+
+```text
+输入：coins = [2], amount = 3
+输出：-1
+```
+
+```text
+输入：coins = [1], amount = 0
+输出：0
+```
+
+### 约束
+
+- `1 <= coins.length <= 12`
+- `1 <= coins[i] <= 2^31 - 1`
+- `0 <= amount <= 10^4`
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    int coinChange(vector<int>& coins, int amount) {
+        vector<int> dp(amount + 1, amount + 1);
+        dp[0] = 0;
+        int n = coins.size();
+        sort(coins.begin(), coins.end());
+        for(int i = 0;i < coins.size();i++){
+            for(int j = coins[i];j <= amount;j++){
+                dp[j] = min(dp[j], dp[j - coins[i]] + 1);
+            }
+        }
+        if(dp[amount] == amount + 1)
+            return -1;
+        return dp[amount];
+    }
+};
+```
+
+### 解法说明
+
+将每种硬币看作可以无限次使用的物品，使用完全背包动态规划。`dp[j]` 表示组成金额 `j` 所需的最少硬币数量。`dp[0] = 0`，其余状态初始化为不可能成为合法答案的哨兵值 `amount + 1`。
+
+枚举面额 `coins[i]` 时，从该面额开始正序遍历金额，并执行：
+
+```text
+dp[j] = min(dp[j], dp[j - coins[i]] + 1)
+```
+
+金额正序遍历允许本轮更新后的状态继续使用同一种硬币，因此每种硬币可以选择任意次。最终如果 `dp[amount]` 仍为哨兵值，说明目标金额不可达，返回 `-1`。
+
+### 复杂度
+
+设硬币种类数为 `m`：
+
+- 时间复杂度：`O(m log m + m * amount)`，包括排序和动态规划
+- 空间复杂度：`O(amount)`，使用一维动态规划数组
+
+> 动态规划只依赖硬币面额，不要求 `coins` 有序，因此这里的 `sort` 可以省略，也能避免修改输入数组；变量 `n` 没有被使用，可以删除。省略排序后时间复杂度为 `O(m * amount)`。
+
+---
+
+## 139. 单词拆分
+
+- 难度：中等
+- 题目链接：[LeetCode - 单词拆分](https://leetcode.cn/problems/word-break/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定字符串 `s` 和字符串列表 `wordDict`。如果可以使用字典中的一个或多个单词拼接出完整的 `s`，则返回 `true`，否则返回 `false`。字典中的单词不要求全部使用，并且每个单词可以重复使用。
+
+### 示例
+
+```text
+输入：s = "leetcode", wordDict = ["leet","code"]
+输出：true
+解释："leetcode" 可以由 "leet" 和 "code" 拼接得到。
+```
+
+```text
+输入：s = "applepenapple", wordDict = ["apple","pen"]
+输出：true
+解释：字典中的单词可以重复使用。
+```
+
+```text
+输入：s = "catsandog", wordDict = ["cats","dog","sand","and","cat"]
+输出：false
+```
+
+### 约束
+
+- `1 <= s.length <= 300`
+- `1 <= wordDict.length <= 1000`
+- `1 <= wordDict[i].length <= 20`
+- `s` 和 `wordDict[i]` 仅由小写英文字母组成
+- `wordDict` 中的字符串互不相同
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    bool wordBreak(string s, vector<string>& wordDict) {
+        int n = s.size();
+
+        bool dp[305] = {};
+        dp[0] = true;
+
+        map<string, int> mp;
+
+        for (int i = 0; i < wordDict.size(); i++) {
+            mp[wordDict[i]] = 1;
+        }
+
+        for (int i = 1; i <= n; i++) {
+            for (int j = 0; j < i; j++) {
+                string str = s.substr(j, i - j);
+
+                if (mp[str] && dp[j]) {
+                    dp[i] = true;
+                }
+
+                if (dp[i])
+                    break;
+            }
+        }
+
+        return dp[n];
+    }
+};
+```
+
+### 解法说明
+
+`dp[i]` 表示字符串前 `i` 个字符组成的前缀 `s[0, i)` 是否能够由字典单词拼接得到。空前缀不需要任何单词，因此初始化 `dp[0] = true`。
+
+对于每个前缀终点 `i`，枚举最后一个单词的起点 `j`。如果前缀 `s[0, j)` 已经可以拆分，并且子串 `s[j, i)` 存在于字典中，那么 `dp[i]` 就可以设为 `true`。一旦找到合法分割位置，就提前结束当前内层循环。最终返回 `dp[n]`。
+
+### 复杂度
+
+代码枚举 `O(n^2)` 个分割区间，而 `substr` 会复制最长 `O(n)` 个字符；`std::map` 的字符串查询还包含树查找和字符串比较。因此：
+
+- 时间复杂度：最坏可达 `O(n^3 log q)`，`q` 为执行过程中 `map` 中的键数量
+- 空间复杂度：最坏可达 `O(n^3)` 个字符，因为缺失的子串也可能被插入 `map`；另有 `O(n)` 的动态规划状态
+
+> `mp[str]` 在 `str` 不存在时会向 `map` 插入一个值为 `0` 的新键，而且它在 `dp[j]` 之前被求值，所以许多无用子串也会被保存。建议先判断 `dp[j]`，再使用 `mp.find(str) != mp.end()`；也可以改用 `unordered_set<string>`，并利用字典单词最大长度为 `20` 的约束，只枚举可能的单词长度，从而显著减少时间和内存开销。
+
+---
+
+## 300. 最长递增子序列
+
+- 难度：中等
+- 题目链接：[LeetCode - 最长递增子序列](https://leetcode.cn/problems/longest-increasing-subsequence/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个整数数组 `nums`，返回其中最长严格递增子序列的长度。子序列可以删除原数组中的部分元素，但不能改变保留元素之间的相对顺序。
+
+### 示例
+
+```text
+输入：nums = [10,9,2,5,3,7,101,18]
+输出：4
+解释：最长递增子序列可以是 [2,3,7,101]。
+```
+
+```text
+输入：nums = [0,1,0,3,2,3]
+输出：4
+```
+
+```text
+输入：nums = [7,7,7,7,7,7,7]
+输出：1
+```
+
+### 约束
+
+- `1 <= nums.length <= 2500`
+- `-10^4 <= nums[i] <= 10^4`
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    int dp[2505];
+    int n;
+    int a[2505];
+
+    int lengthOfLIS(vector<int>& nums) {
+        n = nums.size();
+        for(int i =0;i < nums.size();i++) a[i + 1] = nums[i];
+        int maxn = 0;
+        for(int i = 1;i <= n;i++){
+            dp[i] = 1;
+            for(int j = 1;j < i;j++){
+                if(a[j] < a[i]) dp[i] = max(dp[i], dp[j] + 1);
+            }
+        }
+        for(int i = 1;i <= n;i++) {
+            // cout << dp[i] << endl;
+            maxn = max(maxn, dp[i]);
+        }
+        return maxn;
+    }
+};
+```
+
+### 解法说明
+
+先把输入复制到从下标 `1` 开始的数组 `a`。`dp[i]` 表示以第 `i` 个元素 `a[i]` 结尾的最长严格递增子序列长度，单独选择当前元素时长度为 `1`。
+
+对于每个位置 `i`，枚举它前面的所有位置 `j`。当 `a[j] < a[i]` 时，可以把当前元素接在以 `a[j]` 结尾的递增子序列后面，因此执行：
+
+```text
+dp[i] = max(dp[i], dp[j] + 1)
+```
+
+最长递增子序列不一定以最后一个元素结尾，所以最后需要在所有 `dp[i]` 中取最大值。
+
+### 复杂度
+
+- 时间复杂度：`O(n^2)`，每个位置枚举它之前的所有元素
+- 空间复杂度：`O(n)`，使用数组 `a` 和动态规划数组 `dp`
+
+> 进阶做法可以维护数组 `tails`，其中 `tails[len - 1]` 表示长度为 `len` 的递增子序列能够取得的最小末尾值。对每个元素使用 `lower_bound` 找到替换位置，可将时间复杂度优化为 `O(n log n)`，空间复杂度保持 `O(n)`。
