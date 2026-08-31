@@ -3678,3 +3678,388 @@ dp[i] = max(dp[i], dp[j] + 1)
 - 空间复杂度：`O(n)`，使用数组 `a` 和动态规划数组 `dp`
 
 > 进阶做法可以维护数组 `tails`，其中 `tails[len - 1]` 表示长度为 `len` 的递增子序列能够取得的最小末尾值。对每个元素使用 `lower_bound` 找到替换位置，可将时间复杂度优化为 `O(n log n)`，空间复杂度保持 `O(n)`。
+
+---
+
+## 152. 乘积最大子数组
+
+- 难度：中等
+- 题目链接：[LeetCode - 乘积最大子数组](https://leetcode.cn/problems/maximum-product-subarray/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个整数数组 `nums`，找出其中乘积最大的非空连续子数组，并返回该子数组的乘积。题目保证任意子数组的乘积都在 32 位整数范围内。
+
+### 示例
+
+```text
+输入：nums = [2,3,-2,4]
+输出：6
+解释：连续子数组 [2,3] 的乘积最大，为 6。
+```
+
+```text
+输入：nums = [-2,0,-1]
+输出：0
+解释：[-2,-1] 不是连续子数组。
+```
+
+### 约束
+
+- `1 <= nums.length <= 2 * 10^4`
+- `-10 <= nums[i] <= 10`
+- 任意子数组的乘积都在 32 位整数范围内
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    int maxProduct(vector<int>& nums) {
+        int n = nums.size();
+
+        vector<int> mx(n);
+        vector<int> mn(n);
+
+        mx[0] = nums[0];
+        mn[0] = nums[0];
+
+        int ans = nums[0];
+
+        for(int i = 1; i < n; i++){
+            mx[i] = max({
+                nums[i],
+                mx[i - 1] * nums[i],
+                mn[i - 1] * nums[i]
+            });
+
+            mn[i] = min({
+                nums[i],
+                mx[i - 1] * nums[i],
+                mn[i - 1] * nums[i]
+            });
+
+            ans = max(ans, mx[i]);
+        }
+
+        return ans;
+    }
+};
+```
+
+### 解法说明
+
+`mx[i]` 表示以 `nums[i]` 结尾的连续子数组能够取得的最大乘积，`mn[i]` 表示对应的最小乘积。处理当前元素时有三种选择：只选择 `nums[i]` 重新开始一个子数组；接在此前最大乘积后面；或接在此前最小乘积后面。
+
+必须同时保存最小乘积，因为当 `nums[i]` 为负数时，此前的最小负乘积乘以当前负数，可能变成新的最大正乘积。数字 `0` 则可以通过“只选择当前元素”自然地中断此前区间。每轮使用 `mx[i]` 更新全局答案。
+
+### 复杂度
+
+- 时间复杂度：`O(n)`，每个元素只处理一次
+- 空间复杂度：`O(n)`，使用两个动态规划数组
+
+> 当前状态只依赖前一个位置的最大和最小乘积，可以使用两个滚动变量代替数组，将额外空间复杂度优化为 `O(1)`。更新时需要先保存上一轮的两个值，避免新状态覆盖旧状态。
+
+---
+
+## 416. 分割等和子集
+
+- 难度：中等
+- 题目链接：[LeetCode - 分割等和子集](https://leetcode.cn/problems/partition-equal-subset-sum/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个只包含正整数的非空数组 `nums`，判断能否将它分割为两个子集，使两个子集的元素和相等。
+
+### 示例
+
+```text
+输入：nums = [1,5,11,5]
+输出：true
+解释：可以分割为 [1,5,5] 和 [11]。
+```
+
+```text
+输入：nums = [1,2,3,5]
+输出：false
+```
+
+### 约束
+
+- `1 <= nums.length <= 200`
+- `1 <= nums[i] <= 100`
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    bool canPartition(vector<int>& nums) {
+        int sum = 0;
+        for(auto &x : nums){
+            sum += x;
+        }
+
+        if(sum % 2 != 0) return false;
+        int val = sum / 2;
+        vector<bool> dp(val + 1, false);
+        dp[0] = true;
+
+        for(int i = 0;i < nums.size();i++){
+            for(int j= val;j >= nums[i];j--){
+                dp[j] = dp[j] || dp[j - nums[i]];
+            }
+        }
+        return dp[val];
+    }
+};
+```
+
+### 解法说明
+
+如果数组总和为奇数，不可能平均分成两个整数和相同的子集，直接返回 `false`。当总和为偶数时，问题等价于：能否从数组中选择一部分元素，使其和恰好为总和的一半 `val`。
+
+使用 0-1 背包动态规划，`dp[j]` 表示能否使用已经处理过的元素凑出和 `j`。空集合可以凑出 `0`，所以初始化 `dp[0] = true`。对于当前元素 `nums[i]`，状态转移为：
+
+```text
+dp[j] = dp[j] || dp[j - nums[i]]
+```
+
+金额 `j` 必须从大到小遍历，确保当前元素在本轮最多使用一次；如果从小到大遍历，刚更新的状态会再次参与转移，使同一个元素被重复选择，变成完全背包。最终返回 `dp[val]`。
+
+### 复杂度
+
+设数组长度为 `n`，全部元素之和为 `S`：
+
+- 时间复杂度：`O(n * S)`，目标容量为 `S / 2`，常数因子省略
+- 空间复杂度：`O(S)`，使用长度为 `S / 2 + 1` 的一维状态数组
+
+---
+
+## 1143. 最长公共子序列
+
+- 难度：中等
+- 题目链接：[LeetCode - 最长公共子序列](https://leetcode.cn/problems/longest-common-subsequence/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定两个字符串 `text1` 和 `text2`，返回它们最长公共子序列的长度；如果不存在公共子序列，则返回 `0`。子序列可以删除原字符串中的部分字符，但不能改变保留字符的相对顺序。
+
+### 示例
+
+```text
+输入：text1 = "abcde", text2 = "ace"
+输出：3
+解释：最长公共子序列为 "ace"。
+```
+
+```text
+输入：text1 = "abc", text2 = "abc"
+输出：3
+```
+
+```text
+输入：text1 = "abc", text2 = "def"
+输出：0
+```
+
+### 约束
+
+- `1 <= text1.length, text2.length <= 1000`
+- `text1` 和 `text2` 仅由小写英文字母组成
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    int longestCommonSubsequence(string text1, string text2) {
+        int n = text1.size();
+        int m = text2.size();
+
+        int dp[1005][1005] = {};
+
+        for(int i = 1; i <= n; i++){
+            for(int j = 1; j <= m; j++){
+                if(text1[i - 1] == text2[j - 1]){
+                    dp[i][j] = dp[i - 1][j - 1] + 1;
+                }else{
+                    dp[i][j] = max(
+                        dp[i - 1][j],
+                        dp[i][j - 1]
+                    );
+                }
+            }
+        }
+
+        return dp[n][m];
+    }
+};
+```
+
+### 解法说明
+
+`dp[i][j]` 表示 `text1` 的前 `i` 个字符与 `text2` 的前 `j` 个字符能够形成的最长公共子序列长度。数组初始化为 `0`，自然覆盖了任意一方为空字符串的边界状态。
+
+当 `text1[i - 1] == text2[j - 1]` 时，可以把这个相同字符接到两个更短前缀的最长公共子序列后面：
+
+```text
+dp[i][j] = dp[i - 1][j - 1] + 1
+```
+
+当两个字符不同时，当前公共子序列不能同时选择它们，因此分别尝试忽略 `text1` 或 `text2` 的当前字符，并取较大值：
+
+```text
+dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
+```
+
+最终 `dp[n][m]` 就是两个完整字符串的最长公共子序列长度。
+
+### 复杂度
+
+- 时间复杂度：`O(n * m)`，计算二维状态表中的每个位置
+- 空间复杂度：`O(n * m)`，保存完整二维动态规划数组
+
+> 当前局部数组约占 4 MB 栈空间，在栈限制较小的环境中可以改为堆上的 `vector` 或类成员数组。由于每一行只依赖上一行和当前行左侧状态，可以使用滚动数组将空间复杂度优化为 `O(min(n, m))`。
+
+---
+
+## 62. 不同路径
+
+- 难度：中等
+- 题目链接：[LeetCode - 不同路径](https://leetcode.cn/problems/unique-paths/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+一个机器人位于 `m x n` 网格的左上角，每次只能向下或向右移动一步。求它到达网格右下角共有多少条不同路径。
+
+### 示例
+
+```text
+输入：m = 3, n = 7
+输出：28
+```
+
+```text
+输入：m = 3, n = 2
+输出：3
+解释：三条路径分别为右下下、下下右和下右下。
+```
+
+### 约束
+
+- `1 <= m, n <= 100`
+- 题目保证答案不超过 `2 * 10^9`
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    int uniquePaths(int m, int n) {
+        int dp[105][105] = {};
+        for(int i = 1;i <= m;i++) dp[i][1] = 1;
+        for(int i = 1;i <= n;i++) dp[1][i] = 1;
+        for(int i = 1;i <= m;i++){
+            for(int j = 1;j <= n;j++){
+                if(i != 1 || j != 1) dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+            }
+        }
+        return dp[m][n];
+    }
+};
+```
+
+### 解法说明
+
+`dp[i][j]` 表示从左上角走到第 `i` 行、第 `j` 列位置的不同路径数量。第一列只能一直向下到达，第一行只能一直向右到达，因此它们的路径数都初始化为 `1`。
+
+对于其他位置，机器人最后一步只能从上方或左方走来，所以状态转移为：
+
+```text
+dp[i][j] = dp[i - 1][j] + dp[i][j - 1]
+```
+
+条件 `i != 1 || j != 1` 只会排除起点 `(1, 1)`，避免把已初始化的起点覆盖为 `0`。最终返回右下角状态 `dp[m][n]`。
+
+### 复杂度
+
+- 时间复杂度：`O(m * n)`，遍历整个网格
+- 空间复杂度：`O(m * n)`，使用二维动态规划数组
+
+> 每个状态只依赖上一行的同一列和当前行的前一列，可以使用一维滚动数组将空间复杂度优化为 `O(n)`；如果选择较短的网格维度作为数组长度，则可以进一步写成 `O(min(m, n))`。
+
+---
+
+## 64. 最小路径和
+
+- 难度：中等
+- 题目链接：[LeetCode - 最小路径和](https://leetcode.cn/problems/minimum-path-sum/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个包含非负整数的 `m x n` 网格 `grid`，找出一条从左上角到右下角的路径，使路径上所有数字的总和最小。每次只能向下或向右移动一步。
+
+### 示例
+
+```text
+输入：grid = [[1,3,1],[1,5,1],[4,2,1]]
+输出：7
+解释：路径 1→3→1→1→1 的总和最小。
+```
+
+```text
+输入：grid = [[1,2,3],[4,5,6]]
+输出：12
+```
+
+### 约束
+
+- `m == grid.length`
+- `n == grid[i].length`
+- `1 <= m, n <= 200`
+- `0 <= grid[i][j] <= 200`
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    int minPathSum(vector<vector<int>>& grid) {
+        int dp[205][205];
+        memset(dp, 0x7f, sizeof dp);
+        dp[1][1] = grid[0][0];
+        int m = grid.size();
+        int n = grid[0].size();
+        for(int i = 1;i <= grid.size();i++){
+            for(int j = 1;j <= grid[i - 1].size();j++){
+                dp[i][j] = min(dp[i][j], dp[i - 1][j] + grid[i - 1][j - 1]);
+                dp[i][j] = min(dp[i][j], dp[i][j - 1] + grid[i - 1][j - 1]);
+            }
+        }
+        return dp[m][n];
+    }
+};
+```
+
+### 解法说明
+
+`dp[i][j]` 表示走到原网格位置 `grid[i - 1][j - 1]` 时能够取得的最小路径和。先使用 `memset(dp, 0x7f, ...)` 把整个状态表填充为一个很大的正数，使网格外侧的第 `0` 行和第 `0` 列不能成为有效转移来源，并将起点 `dp[1][1]` 初始化为 `grid[0][0]`。
+
+每个位置只能从上方或左方到达，因此依次执行：
+
+```text
+dp[i][j] = min(
+    dp[i - 1][j],
+    dp[i][j - 1]
+) + grid[i - 1][j - 1]
+```
+
+原代码把这个公式拆成两次 `min` 更新。处理起点时，它已经是 `grid[0][0]`，与两个哨兵状态相加得到的值更大，因此起点不会被覆盖。最终返回 `dp[m][n]`。
+
+### 复杂度
+
+- 时间复杂度：`O(m * n)`，每个网格位置处理一次
+- 空间复杂度：`O(m * n)`，使用二维动态规划数组
+
+> 状态只依赖上一行和当前行的左侧位置，可以使用一维滚动数组把空间复杂度优化为 `O(n)`；如果允许修改输入，也可以直接在 `grid` 中累计最小路径和，将额外空间复杂度优化为 `O(1)`。
