@@ -4063,3 +4063,264 @@ dp[i][j] = min(
 - 空间复杂度：`O(m * n)`，使用二维动态规划数组
 
 > 状态只依赖上一行和当前行的左侧位置，可以使用一维滚动数组把空间复杂度优化为 `O(n)`；如果允许修改输入，也可以直接在 `grid` 中累计最小路径和，将额外空间复杂度优化为 `O(1)`。
+
+---
+
+## 5. 最长回文子串
+
+- 难度：中等
+- 题目链接：[LeetCode - 最长回文子串](https://leetcode.cn/problems/longest-palindromic-substring/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定一个字符串 `s`，找出其中最长的回文子串。回文字符串从左向右和从右向左读取的内容相同，子串必须是原字符串中连续的一段。
+
+### 示例
+
+```text
+输入：s = "babad"
+输出："bab"
+解释："aba" 同样是正确答案。
+```
+
+```text
+输入：s = "cbbd"
+输出："bb"
+```
+
+### 约束
+
+- `1 <= s.length <= 1000`
+- `s` 仅由数字和英文字母组成
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    string longestPalindrome(string s) {
+        int n = s.size();
+
+        int start = 0;
+        int maxLen = 1;
+
+        for(int i = 0; i < n; i++){
+            // 奇数长度回文
+            int l = i;
+            int r = i;
+
+            while(l >= 0 && r < n && s[l] == s[r]){
+                if(r - l + 1 > maxLen){
+                    maxLen = r - l + 1;
+                    start = l;
+                }
+
+                l--;
+                r++;
+            }
+
+            // 偶数长度回文
+            l = i;
+            r = i + 1;
+
+            while(l >= 0 && r < n && s[l] == s[r]){
+                if(r - l + 1 > maxLen){
+                    maxLen = r - l + 1;
+                    start = l;
+                }
+
+                l--;
+                r++;
+            }
+        }
+
+        return s.substr(start, maxLen);
+    }
+};
+```
+
+### 解法说明
+
+枚举字符串中的每个位置作为回文中心，并向左右两侧同时扩展。回文串的长度可能为奇数或偶数，因此每个位置需要处理两种中心：
+
+- 奇数长度回文以单个字符为中心，初始指针为 `l = i`、`r = i`。
+- 偶数长度回文以相邻字符之间的空隙为中心，初始指针为 `l = i`、`r = i + 1`。
+
+只要左右指针没有越界并且对应字符相同，就继续扩展。每次得到更长的回文子串时，更新起始位置 `start` 和长度 `maxLen`。最终通过 `s.substr(start, maxLen)` 返回答案。更新条件使用严格大于号，因此出现多个同样长的答案时会保留先找到的一个。
+
+### 复杂度
+
+- 时间复杂度：`O(n^2)`，最坏情况下每个中心都向两侧扩展 `O(n)` 次
+- 空间复杂度：`O(1)`，不计返回字符串时只使用固定数量的变量
+
+> 如果需要进一步优化时间复杂度，可以使用 Manacher 算法在 `O(n)` 时间和 `O(n)` 空间内求出最长回文子串。
+
+---
+
+## 72. 编辑距离
+
+- 难度：中等
+- 题目链接：[LeetCode - 编辑距离](https://leetcode.cn/problems/edit-distance/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+给定两个字符串 `word1` 和 `word2`，返回将 `word1` 转换为 `word2` 所需的最少操作次数。每次可以插入一个字符、删除一个字符或替换一个字符。
+
+### 示例
+
+```text
+输入：word1 = "horse", word2 = "ros"
+输出：3
+解释：替换 h、删除 r、删除 e，共需要 3 次操作。
+```
+
+```text
+输入：word1 = "intention", word2 = "execution"
+输出：5
+```
+
+### 约束
+
+- `0 <= word1.length, word2.length <= 500`
+- `word1` 和 `word2` 仅由小写英文字母组成
+
+### 我的代码
+
+```cpp
+class Solution {
+public:
+    int minDistance(string word1, string word2) {
+        int dp[505][505];
+        memset(dp, 0x7f, sizeof dp);
+        for (int i = 0; i <= word1.size(); i++)
+            dp[i][0] = i;
+
+        for (int j = 0; j <= word2.size(); j++)
+            dp[0][j] = j;
+        for (int i = 1; i <= word1.size(); i++) {
+            for (int j = 1; j <= word2.size(); j++) {
+                if (word1[i - 1] == word2[j - 1])
+                    dp[i][j] = dp[i - 1][j - 1];
+                dp[i][j] = min(dp[i][j], dp[i - 1][j] + 1);
+                dp[i][j] = min(dp[i][j], dp[i][j - 1] + 1);
+                dp[i][j] = min(dp[i][j], dp[i - 1][j - 1] + 1);
+            }
+        }
+        int m = word1.size();
+        int n = word2.size();
+        return dp[m][n];
+    }
+};
+```
+
+### 解法说明
+
+`dp[i][j]` 表示将 `word1` 的前 `i` 个字符转换为 `word2` 的前 `j` 个字符所需的最少操作次数。把长度为 `i` 的字符串转换为空串需要删除 `i` 次，把空串转换为长度为 `j` 的字符串需要插入 `j` 次，因此初始化：
+
+```text
+dp[i][0] = i
+dp[0][j] = j
+```
+
+如果当前字符相同，可以直接继承 `dp[i - 1][j - 1]`，不增加操作。随后比较三种编辑操作：
+
+- `dp[i - 1][j] + 1`：删除 `word1` 的当前字符。
+- `dp[i][j - 1] + 1`：向 `word1` 插入 `word2` 的当前字符。
+- `dp[i - 1][j - 1] + 1`：把当前字符替换为目标字符。
+
+取所有可行方案中的最小值，最终返回 `dp[m][n]`。当两个当前字符相同时，代码仍会检查三种额外操作，但零成本的对角线转移不会比它们更差，所以结果保持正确。
+
+### 复杂度
+
+- 时间复杂度：`O(m * n)`，计算所有前缀组合的状态
+- 空间复杂度：`O(m * n)`，保存完整二维动态规划数组
+
+> 每个状态只依赖上一行、当前行左侧和左上角，可以使用滚动数组将空间复杂度优化为 `O(min(m, n))`。
+
+---
+
+## 155. 最小栈
+
+- 难度：中等
+- 题目链接：[LeetCode - 最小栈](https://leetcode.cn/problems/min-stack/description/?envType=study-plan-v2&envId=top-100-liked)
+
+### 题目描述
+
+设计一个支持 `push`、`pop`、`top` 操作，并且能够在常数时间内获取栈中最小元素的数据结构。需要实现 `MinStack()`、`push(value)`、`pop()`、`top()` 和 `getMin()`。
+
+### 示例
+
+```text
+输入：
+["MinStack","push","push","push","getMin","pop","top","getMin"]
+[[],[-2],[0],[-3],[],[],[],[]]
+
+输出：
+[null,null,null,null,-3,null,0,-2]
+```
+
+### 约束
+
+- `-2^31 <= value <= 2^31 - 1`
+- `pop`、`top` 和 `getMin` 总是在非空栈上调用
+- 所有方法最多被调用 `3 * 10^4` 次
+
+### 我的代码
+
+```cpp
+class MinStack {
+public:
+    stack<int> s;
+    stack<int> min_s;
+
+    MinStack() {}
+
+    void push(int value) {
+        s.push(value);
+
+        if (min_s.empty()) {
+            min_s.push(value);
+        } else {
+            int x = min_s.top();
+            if (value < x)
+                min_s.push(value);
+            else
+                min_s.push(x);
+        }
+    }
+
+    void pop() {
+        s.pop();
+        min_s.pop();
+    }
+
+    int top() { return s.top(); }
+
+    int getMin() { return min_s.top(); }
+};
+
+/**
+ * Your MinStack object will be instantiated and called as such:
+ * MinStack* obj = new MinStack();
+ * obj->push(value);
+ * obj->pop();
+ * int param_3 = obj->top();
+ * int param_4 = obj->getMin();
+ */
+```
+
+### 解法说明
+
+使用两个始终保持相同长度的栈：
+
+- `s` 保存实际压入的元素。
+- `min_s` 的每个位置保存 `s` 到对应深度为止的最小值。
+
+压入新值时，先将它加入 `s`。如果辅助栈为空，就把该值作为当前最小值；否则比较新值与 `min_s.top()`，把两者中较小的值压入 `min_s`。因此 `min_s.top()` 始终对应当前整个栈的最小值。
+
+弹出时两个栈同步执行 `pop`，原栈回到上一层后，辅助栈顶也会自动恢复为上一层的最小值。即使新值等于当前最小值，代码也会再压入一次相同最小值，所以删除重复最小元素时仍然正确。
+
+### 复杂度
+
+- `push`、`pop`、`top`、`getMin` 的时间复杂度均为 `O(1)`
+- 空间复杂度：`O(n)`，两个栈各保存至多 `n` 个元素
